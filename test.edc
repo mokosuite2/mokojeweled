@@ -1,0 +1,102 @@
+#define gem(n) \
+    group { \
+        images { \
+            image: "gem"n".png" COMP; \
+        } \
+\
+        name: "gem"n; \
+        parts { \
+            part { \
+                name: "icon"; \
+                type: IMAGE; \
+                description { \
+                    state: "default" 0.0; \
+                    aspect: 1 1; \
+                    aspect_preference: BOTH; \
+                    image { \
+                        normal: "gem"n".png"; \
+                    } \
+                } \
+            } \
+        } \
+    }
+
+
+collections {
+    group {
+        name: "main";
+        parts {
+            part {
+                name: "table";
+                type: TABLE;
+                description {
+                    state: "default" 0.0;
+                    rel1.relative: 0.0 0.0;
+                    rel2.relative: 1.0 1.0;
+                    //min: 400 400;
+                }
+                table {
+                    items {
+                        item {
+                            source: "gem01";
+                            align: 0.5 0.5;
+                            position: 1 1;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                        item {
+                            source: "gem02";
+                            align: 0.5 0.5;
+                            position: 2 1;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                        item {
+                            source: "gem03";
+                            position: 3 1;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                        item {
+                            source: "gem04";
+                            align: 0.5 0.5;
+                            position: 1 2;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                        item {
+                            source: "gem05";
+                            align: 0.5 0.5;
+                            position: 2 2;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                        item {
+                            source: "gem06";
+                            align: 0.5 0.5;
+                            position: 3 2;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                        item {
+                            source: "gem07";
+                            align: 0.5 0.5;
+                            position: 1 3;
+                            align: -1 -1;
+                            weight: 1 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    gem("01")
+    gem("02")
+    gem("03")
+    gem("04")
+    gem("05")
+    gem("06")
+    gem("07")
+
+}
