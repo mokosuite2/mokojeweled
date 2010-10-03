@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PACKAGES="glib-2.0 gobject-2.0 elementary"
+CFLAGS="`pkg-config --cflags ${PACKAGES}`"
+LIBS="`pkg-config --libs ${PACKAGES}`"
+SOURCES="main.c test_mainwin.c"
+
+gcc -DPACKAGE=\"mokojeweled\" -DVERSION=\"0.1\" ${CFLAGS} ${LIBS} -o mokojeweled ${SOURCES} &&
+echo "Compiled." &&
+./mokojeweled
