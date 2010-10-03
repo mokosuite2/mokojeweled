@@ -7,8 +7,9 @@
         name: "gem"n; \
         parts { \
             part { \
-                name: "icon"; \
+                name: "gem"n"_icon"; \
                 type: IMAGE; \
+                mouse_events: 1; \
                 description { \
                     state: "default" 0.0; \
                     aspect: 1 1; \
@@ -17,6 +18,15 @@
                         normal: "gem"n".png"; \
                     } \
                 } \
+            } \
+        } \
+\
+        programs { \
+            program { \
+                name: "gem"n"_clicked"; \
+                signal: "mouse,clicked,1"; \
+                source: "gem"n; \
+                action: SIGNAL_EMIT n "clicked"; \
             } \
         } \
     }
