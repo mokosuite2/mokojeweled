@@ -27,7 +27,7 @@ void test_mainwindow()
     evas_object_show(layout);
 
     Evas_Object* edj = elm_layout_edje_get(layout);
-    edje_object_signal_callback_add(edj, "mouse,clicked,1", "table:gem*", _gem_clicked, NULL);
+    edje_object_signal_callback_add(edj, "clicked", "table:*", _gem_clicked, NULL);
 
     evas_object_resize(win, 400, 400);
     evas_object_show(win);

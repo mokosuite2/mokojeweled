@@ -17,6 +17,20 @@
                     image { \
                         normal: "gem"n".png"; \
                     } \
+                    rel1.relative: 0.0 0.0; \
+                    rel2.relative: 1.0 1.0; \
+                } \
+                description { \
+                    state: "right" 0.0; \
+                    inherit: "default" 0.0; \
+                    rel1.relative: 1.0 0.0; \
+                    rel2.relative: 2.0 1.0; \
+                } \
+                description { \
+                    state: "left" 0.0; \
+                    inherit: "default" 0.0; \
+                    rel1.relative: -1.0 0.0; \
+                    rel2.relative: 0.0 1.0; \
                 } \
             } \
         } \
@@ -25,8 +39,24 @@
             program { \
                 name: "gem"n"_clicked"; \
                 signal: "mouse,clicked,1"; \
-                source: "gem"n; \
-                action: SIGNAL_EMIT n "clicked"; \
+                source: "gem"n"_icon"; \
+                action: SIGNAL_EMIT "clicked" n; \
+            } \
+            program { \
+                name: "gem"n"_right"; \
+                signal: "mouse,clicked,1"; \
+                source: "gem"n"_icon"; \
+                action:  STATE_SET "right" 0.0; \
+                transition: LINEAR 0.2; \
+                target: "gem"n"_icon"; \
+            } \
+            program { \
+                name: "gem"n"_left"; \
+                signal: "mouse,clicked,3"; \
+                source: "gem"n"_icon"; \
+                action:  STATE_SET "left" 0.0; \
+                transition: LINEAR 0.2; \
+                target: "gem"n"_icon"; \
             } \
         } \
     }
@@ -44,6 +74,9 @@ collections {
                     rel1.relative: 0.0 0.0;
                     rel2.relative: 1.0 1.0;
                     //min: 400 400;
+                    table {
+                        homogeneous: NONE;
+                    }
                 }
                 table {
                     items {
