@@ -7,7 +7,28 @@
         name: "gem"n; \
         parts { \
             part { \
-                name: "gem"n"_icon"; \
+                name: "border"; \
+                type: IMAGE; \
+                mouse_events: 1; \
+                description { \
+                    state: "default" 0.0; \
+                    aspect: 1 1; \
+                    aspect_preference: BOTH; \
+                    visible: 0; \
+                    image { \
+                        normal: "border.png"; \
+                    } \
+                    rel1.relative: 0.0 0.0; \
+                    rel2.relative: 1.0 1.0; \
+                } \
+                description { \
+                    state: "visible" 0.0; \
+                    inherit: "default" 0.0; \
+                    visible: 1; \
+                } \
+            } \
+            part { \
+                name: "icon"; \
                 type: IMAGE; \
                 mouse_events: 1; \
                 description { \
@@ -20,18 +41,6 @@
                     rel1.relative: 0.0 0.0; \
                     rel2.relative: 1.0 1.0; \
                 } \
-                description { \
-                    state: "right" 0.0; \
-                    inherit: "default" 0.0; \
-                    rel1.relative: 1.0 0.0; \
-                    rel2.relative: 2.0 1.0; \
-                } \
-                description { \
-                    state: "left" 0.0; \
-                    inherit: "default" 0.0; \
-                    rel1.relative: -1.0 0.0; \
-                    rel2.relative: 0.0 1.0; \
-                } \
             } \
         } \
 \
@@ -39,100 +48,41 @@
             program { \
                 name: "gem"n"_clicked"; \
                 signal: "mouse,clicked,1"; \
-                source: "gem"n"_icon"; \
+                source: "icon"; \
                 action: SIGNAL_EMIT "clicked" n; \
             } \
             program { \
-                name: "gem"n"_right"; \
-                signal: "mouse,clicked,1"; \
-                source: "gem"n"_icon"; \
-                action:  STATE_SET "right" 0.0; \
-                transition: LINEAR 0.2; \
-                target: "gem"n"_icon"; \
+                name: "gem"n"_mouseup"; \
+                signal: "mouse,up,1"; \
+                source: "icon"; \
+                action: SIGNAL_EMIT "up" n; \
             } \
             program { \
-                name: "gem"n"_left"; \
-                signal: "mouse,clicked,3"; \
-                source: "gem"n"_icon"; \
-                action:  STATE_SET "left" 0.0; \
-                transition: LINEAR 0.2; \
-                target: "gem"n"_icon"; \
+                name: "gem"n"_mousedown"; \
+                signal: "mouse,down,1"; \
+                source: "icon"; \
+                action: SIGNAL_EMIT "down" n; \
+            } \
+            program { \
+                name: "gem"n"_select"; \
+                signal: "select"; \
+                action: STATE_SET "visible" 0.0; \
+                target: "border"; \
+            } \
+            program { \
+                name: "gem"n"_unselect"; \
+                signal: "unselect"; \
+                action: STATE_SET "default" 0.0; \
+                target: "border"; \
             } \
         } \
     }
 
 
 collections {
-    group {
-        name: "main";
-        parts {
-            part {
-                name: "table";
-                type: TABLE;
-                description {
-                    state: "default" 0.0;
-                    rel1.relative: 0.0 0.0;
-                    rel2.relative: 1.0 1.0;
-                    //min: 400 400;
-                    table {
-                        homogeneous: NONE;
-                    }
-                }
-                table {
-                    items {
-                        item {
-                            source: "gem01";
-                            align: 0.5 0.5;
-                            position: 1 1;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                        item {
-                            source: "gem02";
-                            align: 0.5 0.5;
-                            position: 2 1;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                        item {
-                            source: "gem03";
-                            position: 3 1;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                        item {
-                            source: "gem04";
-                            align: 0.5 0.5;
-                            position: 1 2;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                        item {
-                            source: "gem05";
-                            align: 0.5 0.5;
-                            position: 2 2;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                        item {
-                            source: "gem06";
-                            align: 0.5 0.5;
-                            position: 3 2;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                        item {
-                            source: "gem07";
-                            align: 0.5 0.5;
-                            position: 1 3;
-                            align: -1 -1;
-                            weight: 1 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    images { \
+        image: "border.png" COMP; \
+    } \
 
     gem("01")
     gem("02")

@@ -6,8 +6,6 @@ void test_mainwindow();
 int main(int argc, char* argv[])
 {
     g_debug("%s version %s", PACKAGE, VERSION);
-
-    g_type_init();
     g_set_prgname(PACKAGE);
 
     elm_init(argc, argv);

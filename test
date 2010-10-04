@@ -6,6 +6,6 @@ LIBS="`pkg-config --libs ${PACKAGES}`"
 SOURCES="main.c test_mainwin.c"
 
 edje_cc test.edc test.edj &&
-gcc -DPACKAGE=\"mokojeweled\" -DVERSION=\"0.1\" ${CFLAGS} ${LIBS} -o mokojeweled ${SOURCES} &&
+gcc -Wall -DPACKAGE=\"mokojeweled\" -DVERSION=\"0.1\" ${CFLAGS} ${LIBS} -o mokojeweled ${SOURCES} &&
 echo "Compiled." &&
 ./mokojeweled
