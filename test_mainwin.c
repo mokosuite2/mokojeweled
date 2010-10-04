@@ -11,7 +11,7 @@ static Evas_Object* win = NULL;
 #define COLS        (WIDTH/GEM_SIZE)
 
 // parametri animazioni
-#define FRAMETIME   0.01
+#define FRAMETIME   0.1 //0.01
 #define OFFSET      20
 
 // numero di gemme allineate minimo
@@ -106,16 +106,12 @@ static GList* _check_align(Evas_Object* g, int dx, int dy)
         return aligned;
     }
 
-    coord_t key = {0, };
-    key.x = coords[0] + dx;
-    key.y = coords[1] + dy;
-
-    Evas_Object* other = g_hash_table_lookup(gems, &key);
-    //g_debug("Align/other[%dx%d]=%p", key.x, key.y, other);
+    Evas_Object* other = gem_at(coords[0] + dx, coords[1] + dy);
+    g_debug("Align/other[%dx%d]=%p", coords[0] + dx, coords[1] + dy, other);
 
     if (other) {
         int tid = GPOINTER_TO_INT(evas_object_data_get(other, "index"));
-        //g_debug("Align/other.index=%d, this.index=%d", tid, index);
+        g_debug("Align/other.index=%d, this.index=%d", tid, index);
 
         // aligned!!! prosegui :)
         if (tid == index) {
@@ -210,25 +206,100 @@ static GList* concat_duplicate(GList* list1, GList* list2)
     return iterate_duplicate(res, list2);
 }
 
+static Eina_Bool _gravity(void* data)
+{
+    coord_t* c = data;
+    g_debug("Filling %d gem spaces starting from %dx%d",
+        c->pad, c->x, c->y);
+
+    Eina_Bool ret = TRUE;
+
+    int cur_y = c->y;
+    Evas_Object* upper = gem_at(c->x, c->y);
+    while (upper) {
+        int x, y, new_y, new_yc;
+        evas_object_geometry_get(upper, &x, &y, NULL, NULL);
+
+        new_y = y + OFFSET;
+        new_yc = cur_y + c->pad;
+        evas_object_move(upper, x, new_y);
+
+        // controlla raggiungimento coordinate
+        if (new_y == (new_yc * GEM_SIZE)) {
+            // aggiorna dati gemma
+            int* coords = (int *) evas_object_data_get(upper, "coords");
+
+            // salva vecchie coordinate per rimozione da hash table
+            coord_t kold = {0, };
+            kold.x = coords[0];
+            kold.y = coords[1];
+
+            // rimuovi vecchio valore nell'hash table
+            g_hash_table_remove(gems, &kold);
+
+            int old_coords[2];
+            memcpy(old_coords, coords, sizeof(int) * 2);
+            coords[1] = new_yc;
+            g_debug("Old_coords=%dx%d, New_coords=%dx%d",
+                old_coords[0], old_coords[1], coords[0], coords[1]);
+
+            coord_t* key = g_new0(coord_t, 1);
+            key->x = coords[0];
+            key->y = coords[1];
+            g_hash_table_replace(gems, &key, upper);
+
+            ret = FALSE;
+        }
+
+        cur_y--;
+        upper = gem_at(c->x, cur_y);
+    }
+
+    if (!ret) {
+        g_free(data);
+        selected1 = selected2 = NULL;
+    }
+
+    return ret;
+}
+
 /**
  * Cerca i vuoti e comincia le animazioni per riempirli
  */
 static void refill(void)
 {
-    int x, y;
+    int x, y, empty;
 
     for (x = 0; x < COLS; x++) {
+        empty = 0;
+
         for(y = ROWS - 1; y >= 0; y--) {
             Evas_Object* gem = gem_at(x, y);
             // VUOTO!!!
             if (!gem) {
                 g_debug("Empty (%d, %d)", x, y);
+                empty++;
             }
+
+            else {
+                if (empty > 0)
+                    break;
+            }
+        }
+
+        if (empty > 0) {
+            coord_t* key = g_new0(coord_t, 1);
+            key->x = x;
+            key->y = (y < 0) ? 0 : y;
+            // sapevo che prima o poi sarebbe servito sto campo :D
+            key->pad = empty;
+
+            ecore_animator_add(_gravity, key);
         }
     }
 }
 
-static gboolean _remove_gems(gpointer data)
+static gboolean _remove_gems(void* data)
 {
     GList* iter = data;
     while (iter) {
@@ -242,11 +313,6 @@ static gboolean _remove_gems(gpointer data)
     refill();
 
     return FALSE;
-
-    // EXPORT
-    selected1 = selected2 = NULL;
-    return FALSE;
-    // EXPORT
 }
 
 static Eina_Bool _swap_step(void *data)
@@ -461,7 +527,7 @@ Evas_Object* put_gem(int x, int y, int index)
     key->x = x;
     key->y = y;
 
-    g_hash_table_insert(gems, key, g);
+    g_hash_table_replace(gems, key, g);
 
     return g;
 }
