@@ -57,13 +57,21 @@ static guint g_uint_hash(gconstpointer v)
     return *(const guint*) v;
 }
 
+static Evas_Object* gem_at(int x, int y)
+{
+    coord_t key = {0, };
+    key.x = x;
+    key.y = y;
+    return g_hash_table_lookup(gems, &key);
+}
+
 /**
  * Determina se i punti passati sono adiacenti.
  */
 static gboolean is_adjacent(int x1, int y1, int x2, int y2)
 {
     //g_debug("P1=(%d,%d), P2=(%d,%d), dX=%d, dy=%d", x1, y1, x2, y2, x2-x1, y2-y1);
-    return ((abs(x2 - x1) == 1) ^ (abs(y2 - y1) == 1));
+    return ((abs(x2 - x1) == 1 && y2 == y1) ^ (abs(y2 - y1) == 1 && x2 == x1));
 }
 
 /**
@@ -202,6 +210,24 @@ static GList* concat_duplicate(GList* list1, GList* list2)
     return iterate_duplicate(res, list2);
 }
 
+/**
+ * Cerca i vuoti e comincia le animazioni per riempirli
+ */
+static void refill(void)
+{
+    int x, y;
+
+    for (x = 0; x < COLS; x++) {
+        for(y = ROWS - 1; y >= 0; y--) {
+            Evas_Object* gem = gem_at(x, y);
+            // VUOTO!!!
+            if (!gem) {
+                g_debug("Empty (%d, %d)", x, y);
+            }
+        }
+    }
+}
+
 static gboolean _remove_gems(gpointer data)
 {
     GList* iter = data;
@@ -210,10 +236,17 @@ static gboolean _remove_gems(gpointer data)
         destroy_gem((Evas_Object*) iter->data);
         iter = iter->next;
     }
-
     g_list_free(data);
+
+    // riempi i buchi! :)
+    refill();
+
+    return FALSE;
+
+    // EXPORT
     selected1 = selected2 = NULL;
     return FALSE;
+    // EXPORT
 }
 
 static Eina_Bool _swap_step(void *data)
@@ -272,19 +305,6 @@ static Eina_Bool _swap_step(void *data)
             GList* align = concat_duplicate(align1, align2);
             g_timeout_add(100, _remove_gems, align);
             return FALSE;
-
-            // EXPORT
-            #if 0
-            GList* iter = align;
-            while (iter) {
-                g_debug("Deleting gem %p", iter->data);
-                destroy_gem((Evas_Object*) iter->data);
-                iter = iter->next;
-            }
-
-            g_list_free(align);
-            #endif
-            // EXPORT
         }
 
         else {
