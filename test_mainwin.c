@@ -12,7 +12,7 @@ static Evas_Object* win = NULL;
 
 // parametri animazioni
 #define FRAMETIME   0.02 //0.01
-#define OFFSET      20
+#define OFFSET      10  //20
 
 // numero di gemme allineate minimo
 #define MIN_ALIGNED     3
@@ -188,14 +188,26 @@ static Eina_Bool _falldown(void* data)
     evas_object_geometry_get(gem, &x, &y, NULL, NULL);
 
     int* coords = (int *) evas_object_data_get(gem, "coords");
+    int speed = GPOINTER_TO_INT(evas_object_data_get(gem, "speed"));
 
-    new_y = y + OFFSET;
+    if (!speed)
+        speed = (OFFSET/5);
+    else
+        speed += (OFFSET/5);
+
+    evas_object_data_set(gem, "speed", GINT_TO_POINTER(speed));
+
+    y += speed;
     dest_y = coords[1] * GEM_SIZE;
 
-    if (new_y <= dest_y) {
-        evas_object_move(gem, x, new_y);
+    if (y <= dest_y) {
+        evas_object_move(gem, x, y);
         return TRUE;
     }
+
+    // per sicurezza :D
+    evas_object_move(gem, x, dest_y);
+    evas_object_data_set(gem, "speed", GINT_TO_POINTER(0));
 
     // ferma tutto!
     running--;
@@ -254,6 +266,12 @@ static void refill(void)
     fall_gems();
 }
 
+static gboolean _refill(gpointer data)
+{
+    refill();
+    return FALSE;
+}
+
 static gboolean _remove_gems(void* data)
 {
     GList* iter = data;
@@ -267,7 +285,8 @@ static gboolean _remove_gems(void* data)
     running--;
 
     // riempi i buchi! :)
-    refill();
+    //refill();
+    g_timeout_add(100, _refill, NULL);
 
     return FALSE;
 }
@@ -319,7 +338,7 @@ static Eina_Bool _swap_step(void *data)
         if (align1 || align2) {
             GList* align = concat_duplicate(align1, align2);
             running++;
-            g_timeout_add(100, _remove_gems, align);
+            g_timeout_add(200, _remove_gems, align);
             return FALSE;
         }
 
@@ -459,6 +478,7 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index, Eina_Boo
     evas_object_data_set(edj, "coords", coords);
     evas_object_data_set(edj, "layout", layout);
     evas_object_data_set(edj, "index", GINT_TO_POINTER(index));
+    evas_object_data_set(edj, "speed", GINT_TO_POINTER(0));
 
     edje_object_signal_callback_add(edj, "clicked", "*", _gem_clicked, NULL);
     //edje_object_signal_callback_add(edj, "up", "*", _gem_clicked, NULL);
@@ -491,7 +511,7 @@ static void autoremove_alignments(void)
 
     if (g_list_length(align) > 0) {
         running++;
-        g_timeout_add(100, _remove_gems, align);
+        g_timeout_add(200, _remove_gems, align);
     }
 
     else {
