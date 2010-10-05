@@ -450,6 +450,7 @@ static void _close(void *data, Evas_Object* obj, void* event)
 
 static Evas_Object* make_gem(int col, int row, int x, int y, int index, Eina_Bool autocalculate)
 {
+    char buf[PATH_MAX];
     if (index <= 0)
         index = g_random_int_range(1, 8);
 
@@ -458,7 +459,8 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index, Eina_Boo
     evas_object_size_hint_align_set(layout, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
     char* name = g_strdup_printf("gem%02d", index);
-    elm_layout_file_set(layout, "test.edj", name);
+    snprintf(buf, sizeof(buf), "%s/themes/default.edj", PKGDATADIR);
+    elm_layout_file_set(layout, buf, name);
     g_free(name);
 
     int size = GEM_SIZE;

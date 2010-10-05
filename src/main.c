@@ -1,5 +1,6 @@
 #include <glib.h>
 #include <Elementary.h>
+#include <config.h>
 
 void test_mainwindow();
 

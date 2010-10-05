@@ -1,0 +1,11 @@
+bejeweled clone made with EFL
+Author:  Daniele Ricci <daniele.athome@gmail.com>
+License: GPLv3+.
+Description: A simple bejeweled game clone.
+
+######################
+# How to make it run #
+######################
+
+0. Typical "./configure ; make ; make install" compilation process
+1. Click on the desktop icon
