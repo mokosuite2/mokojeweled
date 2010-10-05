@@ -11,14 +11,14 @@ static Evas_Object* win = NULL;
 #define COLS        (WIDTH/GEM_SIZE)
 
 // parametri animazioni
-#define FRAMETIME   0.1 //0.01
+#define FRAMETIME   0.02 //0.01
 #define OFFSET      20
 
 // numero di gemme allineate minimo
 #define MIN_ALIGNED     3
 
 // tabella gemme
-static GHashTable* gems = NULL;
+static Evas_Object* gems[COLS][ROWS] = {};
 
 // gemme selezionate
 static Evas_Object* selected1 = NULL;
@@ -31,38 +31,17 @@ static int selected2_dest[2] = {-1, -1};
 static int dx1 = 0, dx2 = 0;
 static int dy1 = 0, dy2 = 0;
 
-typedef struct {
-    guint8 x;
-    guint8 y;
-    guint16 pad;
-} __attribute__ ((packed)) coord_t;
-
 // flag movimento ripristinatorio
 static gboolean backward = FALSE;
+static guint running = 0;
 
-static void swap();
-
-static gboolean g_uint_equal(gconstpointer v1, gconstpointer v2)
-{
-    /*
-    coord_t* c1 = v1;
-    coord_t* c2 = v2;
-    return (c1->x == c2->x && c1->y == c2->y);
-    */
-    return *((const guint*) v1) == *((const guint*) v2);
-}
-
-static guint g_uint_hash(gconstpointer v)
-{
-    return *(const guint*) v;
-}
+static void swap(void);
+static void autoremove_alignments(void);
+static Evas_Object* make_gem(int col, int row, int x, int y, int index, Eina_Bool autocalculate);
 
 static Evas_Object* gem_at(int x, int y)
 {
-    coord_t key = {0, };
-    key.x = x;
-    key.y = y;
-    return g_hash_table_lookup(gems, &key);
+    return gems[x][y];
 }
 
 /**
@@ -107,16 +86,16 @@ static GList* _check_align(Evas_Object* g, int dx, int dy)
     }
 
     Evas_Object* other = gem_at(coords[0] + dx, coords[1] + dy);
-    g_debug("Align/other[%dx%d]=%p", coords[0] + dx, coords[1] + dy, other);
+    //g_debug("Align/other[%dx%d]=%p", coords[0] + dx, coords[1] + dy, other);
 
     if (other) {
         int tid = GPOINTER_TO_INT(evas_object_data_get(other, "index"));
-        g_debug("Align/other.index=%d, this.index=%d", tid, index);
+        //g_debug("Align/other.index=%d, this.index=%d", tid, index);
 
         // aligned!!! prosegui :)
         if (tid == index) {
             aligned = g_list_concat(
-                /*aligned*/g_list_append(aligned, other),
+                g_list_append(aligned, other),
                 _check_align(other, dx, dy)
             );
         }
@@ -126,21 +105,16 @@ static GList* _check_align(Evas_Object* g, int dx, int dy)
 }
 
 /**
- * Distrugge una gemma
+ * Distrugge una gemma.
  */
 static void destroy_gem(Evas_Object* gem)
 {
+    int* coords = (int *) evas_object_data_get(gem, "coords");
     Evas_Object* layout = (Evas_Object*) evas_object_data_get(gem, "layout");
     evas_object_del(layout);
 
-    int* coords = (int *) evas_object_data_get(gem, "coords");
-
-    // aggiorna la mappa delle gemme
-    coord_t key = {0, };
-    key.x = coords[0];
-    key.y = coords[1];
-
-    g_hash_table_remove(gems, &key);
+    // aggiorna la matrice delle gemme
+    gems[coords[0]][coords[1]] = NULL;
 
     // libera altri dati dell'oggetto
     g_free(coords);
@@ -154,22 +128,22 @@ static void destroy_gem(Evas_Object* gem)
  */
 static GList* check_alignment(Evas_Object* gem)
 {
-    int index = GPOINTER_TO_INT(evas_object_data_get(gem, "index"));
-    int* coords = (int *) evas_object_data_get(gem, "coords");
+    //int index = GPOINTER_TO_INT(evas_object_data_get(gem, "index"));
+    //int* coords = (int *) evas_object_data_get(gem, "coords");
 
-    g_debug("Checking alignment for gem%02d, coords=%dx%d",
-        index, coords[0], coords[1]);
+    //g_debug("Checking alignment for gem%02d, coords=%dx%d",
+    //    index, coords[0], coords[1]);
 
     GList* left = _check_align(gem, -1, 0);
-    g_debug("Aligned on the left: %d", g_list_length(left));
+    //g_debug("Aligned on the left: %d", g_list_length(left));
     GList* right = _check_align(gem, 1, 0);
-    g_debug("Aligned on the right: %d", g_list_length(right));
+    //g_debug("Aligned on the right: %d", g_list_length(right));
 
     GList* top = _check_align(gem, 0, -1);
-    g_debug("Aligned on top: %d", g_list_length(top));
+    //g_debug("Aligned on top: %d", g_list_length(top));
 
     GList* bottom = _check_align(gem, 0, 1);
-    g_debug("Aligned on bottom: %d", g_list_length(bottom));
+    //g_debug("Aligned on bottom: %d", g_list_length(bottom));
 
     GList* aligned = NULL;
     if ((g_list_length(left) + g_list_length(right) + 1) >= MIN_ALIGNED) {
@@ -206,61 +180,44 @@ static GList* concat_duplicate(GList* list1, GList* list2)
     return iterate_duplicate(res, list2);
 }
 
-static Eina_Bool _gravity(void* data)
+static Eina_Bool _falldown(void* data)
 {
-    coord_t* c = data;
-    g_debug("Filling %d gem spaces starting from %dx%d",
-        c->pad, c->x, c->y);
+    Evas_Object* gem = data;
 
-    Eina_Bool ret = TRUE;
+    int x, y, new_y, dest_y;
+    evas_object_geometry_get(gem, &x, &y, NULL, NULL);
 
-    int cur_y = c->y;
-    Evas_Object* upper = gem_at(c->x, c->y);
-    while (upper) {
-        int x, y, new_y, new_yc;
-        evas_object_geometry_get(upper, &x, &y, NULL, NULL);
+    int* coords = (int *) evas_object_data_get(gem, "coords");
 
-        new_y = y + OFFSET;
-        new_yc = cur_y + c->pad;
-        evas_object_move(upper, x, new_y);
+    new_y = y + OFFSET;
+    dest_y = coords[1] * GEM_SIZE;
 
-        // controlla raggiungimento coordinate
-        if (new_y == (new_yc * GEM_SIZE)) {
-            // aggiorna dati gemma
-            int* coords = (int *) evas_object_data_get(upper, "coords");
-
-            // salva vecchie coordinate per rimozione da hash table
-            coord_t kold = {0, };
-            kold.x = coords[0];
-            kold.y = coords[1];
-
-            // rimuovi vecchio valore nell'hash table
-            g_hash_table_remove(gems, &kold);
-
-            int old_coords[2];
-            memcpy(old_coords, coords, sizeof(int) * 2);
-            coords[1] = new_yc;
-            g_debug("Old_coords=%dx%d, New_coords=%dx%d",
-                old_coords[0], old_coords[1], coords[0], coords[1]);
-
-            coord_t* key = g_new0(coord_t, 1);
-            key->x = coords[0];
-            key->y = coords[1];
-            g_hash_table_replace(gems, &key, upper);
-
-            ret = FALSE;
-        }
-
-        cur_y--;
-        upper = gem_at(c->x, cur_y);
+    if (new_y <= dest_y) {
+        evas_object_move(gem, x, new_y);
+        return TRUE;
     }
 
-    if (!ret) {
-        g_free(data);
+    // ferma tutto!
+    running--;
+
+    if (!running) {
+        autoremove_alignments();
+        // EVVAI :D
         selected1 = selected2 = NULL;
     }
 
-    return ret;
+    return FALSE;
+}
+
+static void fall_gems(void)
+{
+    int i, j;
+    for (i = 0; i < COLS; i++) {
+        for (j = 0; j < ROWS; j++) {
+            running++;
+            ecore_animator_add(_falldown, gems[i][j]);
+        }
+    }
 }
 
 /**
@@ -268,46 +225,46 @@ static Eina_Bool _gravity(void* data)
  */
 static void refill(void)
 {
-    int x, y, empty;
+    int i, j, k;
 
-    for (x = 0; x < COLS; x++) {
-        empty = 0;
+    for (i = 0; i < COLS; i++) {
+        for (j = 0; j < ROWS; j++) {
+            if (!gems[i][j]) {
 
-        for(y = ROWS - 1; y >= 0; y--) {
-            Evas_Object* gem = gem_at(x, y);
-            // VUOTO!!!
-            if (!gem) {
-                g_debug("Empty (%d, %d)", x, y);
-                empty++;
+                for (k = j; k > 0; k--) {
+                    gems[i][k] = gems[i][k - 1];
+                    int* coords = (int *) evas_object_data_get(gems[i][k], "coords");
+                    coords[1]++;
+                }
+
+                if (j && gems[i][1]) {
+                    int old_y;
+                    evas_object_geometry_get(gems[i][1], NULL, &old_y, NULL, NULL);
+
+                    gems[i][0] = make_gem(i, 0, i * GEM_SIZE, old_y - GEM_SIZE, 0, FALSE);
+                }
+
+                else {
+                    gems[i][0] = make_gem(i, 0, i * GEM_SIZE, -GEM_SIZE, 0, FALSE);
+                }
             }
-
-            else {
-                if (empty > 0)
-                    break;
-            }
-        }
-
-        if (empty > 0) {
-            coord_t* key = g_new0(coord_t, 1);
-            key->x = x;
-            key->y = (y < 0) ? 0 : y;
-            // sapevo che prima o poi sarebbe servito sto campo :D
-            key->pad = empty;
-
-            ecore_animator_add(_gravity, key);
         }
     }
+
+    fall_gems();
 }
 
 static gboolean _remove_gems(void* data)
 {
     GList* iter = data;
     while (iter) {
-        g_debug("Deleting gem %p", iter->data);
+        g_debug("[%s] Deleting gem %p", __func__, iter->data);
         destroy_gem((Evas_Object*) iter->data);
         iter = iter->next;
     }
     g_list_free(data);
+
+    running--;
 
     // riempi i buchi! :)
     refill();
@@ -347,17 +304,9 @@ static Eina_Bool _swap_step(void *data)
         memcpy(coords1, coords2, sizeof(int) * 2);
         memcpy(coords2, coords_tmp, sizeof(int) * 2);
 
-        // modifica i valori nell'hashmap
-        coord_t* key;
-        key = g_new0(coord_t, 1);
-        key->x = coords1[0];
-        key->y = coords1[1];
-        g_hash_table_replace(gems, key, selected1);
-
-        key = g_new0(coord_t, 1);
-        key->x = coords2[0];
-        key->y = coords2[1];
-        g_hash_table_replace(gems, key, selected2);
+        // aggiorna la matrice
+        gems[coords1[0]][coords1[1]] = selected1;
+        gems[coords2[0]][coords2[1]] = selected2;
 
         // FIXME per ora verifica statica
         //evas_object_move(selected1, coords1[0] * size, coords1[1] * size);
@@ -369,6 +318,7 @@ static Eina_Bool _swap_step(void *data)
 
         if (align1 || align2) {
             GList* align = concat_duplicate(align1, align2);
+            running++;
             g_timeout_add(100, _remove_gems, align);
             return FALSE;
         }
@@ -398,7 +348,7 @@ static int sign(int num)
 /**
  * Scambia le gemme selezionate di posto.
  */
-static void swap()
+static void swap(void)
 {
     // deseleziona solo graficamente
     unselect(FALSE);
@@ -423,11 +373,15 @@ static void swap()
 
     // avvia animazione
     swap_anim = ecore_animator_add(_swap_step, NULL);
-    ecore_animator_frametime_set(FRAMETIME);
 }
 
 static void _gem_clicked(void *data, Evas_Object* obj, const char* emission, const char* source)
 {
+    if (running > 0) {
+        g_debug("Animation is running!");
+        return;
+    }
+
     if (selected1 && selected2) {
         g_debug("Gems are already selected!");
         return;
@@ -475,9 +429,12 @@ static void _close(void *data, Evas_Object* obj, void* event)
     elm_exit();
 }
 
-static Evas_Object* make_gem(Evas_Object* parent, int index, int col, int row)
+static Evas_Object* make_gem(int col, int row, int x, int y, int index, Eina_Bool autocalculate)
 {
-    Evas_Object* layout = elm_layout_add(parent);
+    if (index <= 0)
+        index = g_random_int_range(1, 8);
+
+    Evas_Object* layout = elm_layout_add(win);
     evas_object_size_hint_weight_set(layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(layout, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
@@ -486,8 +443,8 @@ static Evas_Object* make_gem(Evas_Object* parent, int index, int col, int row)
     g_free(name);
 
     int size = GEM_SIZE;
-    int x = col*size;
-    int y = row*size;
+    x = (x < 0 && autocalculate) ? col*size : x;
+    y = (y < 0 && autocalculate) ? row*size : y;
 
     evas_object_resize(layout, size, size);
     evas_object_move(layout, x, y);
@@ -510,65 +467,64 @@ static Evas_Object* make_gem(Evas_Object* parent, int index, int col, int row)
     return edj;
 }
 
-/**
- * Inserisce una gemma alla posizione specificata.
- * @param x
- * @param y
- * @param index se <= 0 e' casuale
- * @return la gemma
- */
-Evas_Object* put_gem(int x, int y, int index)
-{
-    if (index <= 0)
-        index = g_random_int_range(1, 8);
-
-    Evas_Object* g = make_gem(win, index, x, y);
-    coord_t* key = g_new0(coord_t, 1);
-    key->x = x;
-    key->y = y;
-
-    g_hash_table_replace(gems, key, g);
-
-    return g;
-}
-
-void remove_alignments(void)
+static GList* get_alignments(void)
 {
     GList* align = NULL;
     int x, y;
-    gboolean loop = FALSE;
 
     for (x = 0; x < COLS; x++) {
         for(y = 0; y < ROWS; y++) {
-            coord_t key = {0, };
-            key.x = x;
-            key.y = y;
-
-            Evas_Object* g = (Evas_Object *) g_hash_table_lookup(gems, &key);
-            if (g) {
+            Evas_Object* g = gem_at(x, y);
+            if (g)
                 align = concat_duplicate(align, check_alignment(g));
-            }
         }
     }
 
-    GList* iter = align;
+    return align;
+}
+
+static void autoremove_alignments(void)
+{
+    GList* align = NULL;
+
+    align = get_alignments();
+
+    if (g_list_length(align) > 0) {
+        running++;
+        g_timeout_add(100, _remove_gems, align);
+    }
+
+    else {
+        g_list_free(align);
+        selected1 = selected2 = NULL;
+    }
+}
+
+static void remove_alignments(void)
+{
+    GList* align = NULL, *iter;
+    gboolean loop = FALSE;
+
+    align = get_alignments();
+    iter = align;
 
     while (iter) {
         // se siamo entrati qui vuol dire che dobbiamo reiterare :(
         loop = TRUE;
-
-        g_debug("Deleting gem %p", iter->data);
         Evas_Object* gem = iter->data;
 
-        // salviamoci le coordinate
         int* coords = evas_object_data_get(gem, "coords");
-        x = coords[0];
-        y = coords[1];
+        int r = coords[0];
+        int c = coords[1];
 
-        destroy_gem((Evas_Object*) iter->data);
+        int x, y;
+        evas_object_geometry_get(gem, &x, &y, NULL, NULL);
+
+        g_debug("[%s] Deleting gem %p", __func__, gem);
+        destroy_gem(gem);
 
         // rimpiazza subito!
-        put_gem(x, y, 0);
+        gems[r][c] = make_gem(r, c, x, y, 0, FALSE);
 
         iter = iter->next;
     }
@@ -579,11 +535,38 @@ void remove_alignments(void)
         remove_alignments();
 }
 
+static void dump_table(int sig_num)
+{
+    g_return_if_fail(gems != NULL);
+
+    int x, y, mismatch = 0, empty = 0;
+    for (x = 0; x < COLS; x++) {
+        for(y = 0; y < ROWS; y++) {
+            Evas_Object* gem = gem_at(x, y);
+            if (gem) {
+                int* coords = (int*) evas_object_data_get(gem, "coords");
+                printf("[%dx%d, %dx%d]", x, y, coords[0], coords[1]);
+                if (coords[0] != x || coords[1] != y)
+                    mismatch++;
+            }
+            else {
+                printf("[%dx%d, NxN]", x, y);
+                empty++;
+            }
+        }
+        printf("\n");
+    }
+    if (mismatch > 0 || empty > 0)
+        g_warning("mismatch=%d, empty=%d", mismatch, empty);
+}
+
 void test_mainwindow()
 {
     win = elm_win_add(NULL, "mokojeweled", ELM_WIN_BASIC);
     elm_win_title_set(win, "Mokojeweled");
     evas_object_smart_callback_add(win, "delete,request", _close, NULL);
+
+    ecore_animator_frametime_set(FRAMETIME);
 
     Evas_Object* bg = elm_bg_add(win);
     evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -591,17 +574,32 @@ void test_mainwindow()
     elm_win_resize_object_add(win, bg);
     evas_object_show(bg);
 
-    gems = g_hash_table_new_full(g_uint_hash, g_uint_equal, g_free, NULL);
-
+    #if 0
     int x, y;
     for (x = 0; x < COLS; x++) {
         for(y = 0; y < ROWS; y++) {
-            put_gem(x, y, 0);
+            gems[x][y] = make_gem(x, y, -1, -1, 0);
         }
     }
+    #endif
+
+    int i, j;
+    for (i = 0; i < COLS; i++)
+        for (j = 0; j < ROWS; j++)
+            gems[i][j] = make_gem(i, j, i * GEM_SIZE, (j - ROWS) * GEM_SIZE, 0, FALSE);
 
     remove_alignments();
+    fall_gems();
+
+    //refill();
+    //autoremove_alignments();
 
     evas_object_resize(win, WIDTH, HEIGHT);
     evas_object_show(win);
+
+    // segnaletica ;)
+    struct sigaction usr1 = {};
+    usr1.sa_handler = dump_table;
+    usr1.sa_flags = 0;
+    sigaction(SIGUSR1, &usr1, NULL);
 }

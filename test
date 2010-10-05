@@ -6,6 +6,16 @@ LIBS="`pkg-config --libs ${PACKAGES}`"
 SOURCES="main.c test_mainwin.c"
 
 edje_cc test.edc test.edj &&
-gcc -Wall -DPACKAGE=\"mokojeweled\" -DVERSION=\"0.1\" ${CFLAGS} ${LIBS} -o mokojeweled ${SOURCES} &&
+gcc -g -Wall -DPACKAGE=\"mokojeweled\" -DVERSION=\"0.1\" ${CFLAGS} ${LIBS} -o mokojeweled ${SOURCES} &&
 echo "Compiled." &&
+(
+if [ "$1" == "valgrind" ]; then
+valgrind --db-attach=yes ./mokojeweled
+elif [ "$1" == "debug" ]; then
+echo "run" >gdbinit
+gdb ./mokojeweled -x gdbinit
+rm -f gdbinit
+else
 ./mokojeweled
+fi
+)
