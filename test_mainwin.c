@@ -184,7 +184,7 @@ static Eina_Bool _falldown(void* data)
 {
     Evas_Object* gem = data;
 
-    int x, y, new_y, dest_y;
+    int x, y, dest_y;
     evas_object_geometry_get(gem, &x, &y, NULL, NULL);
 
     int* coords = (int *) evas_object_data_get(gem, "coords");
