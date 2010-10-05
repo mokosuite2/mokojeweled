@@ -1,1 +1,0 @@
-edje_cc test.edc && edje_player test.edj

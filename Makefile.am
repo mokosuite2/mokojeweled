@@ -1,15 +1,11 @@
-SUBDIRS = po data src
-
-MAINTAINERCLEANFILES = \
-	Makefile.in Makefile aclocal.m4 config.guess \
-	config.h.in config.sub configure install-sh \
-	ltconfig ltmain.sh missing mkinstalldirs \
-	stamp-h.in acconfig.h stamp-h depcomp
-
+SUBDIRS = src po data
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST =		\
-	elmdentica.spec \
-	config.rpath	\
-	m4/ChangeLog
+MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.sub \
+                       configure depcomp install-sh  \
+                       Makefile.in missing ltmain.sh \
+                       mkinstalldirs config.h.in config.h.in~ INSTALL
+
+#maintainer-clean-local:
+#	$(RM) -R m4
