@@ -64,7 +64,7 @@ typedef Eina_Bool bool;
 #define WIN_HEIGHT      600
 
 // this should work...
-#define _   gettext
+#define _(string)   gettext(string)
 
 #define return_if_fail(x)   ({ \
     if (!(x)) \
