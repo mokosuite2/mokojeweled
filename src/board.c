@@ -595,9 +595,9 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index)
     evas_object_data_set(edj, "index", (void *) (index));
     evas_object_data_set(edj, "speed", (void *) (0));
 
-    // TODO edje_object_signal_callback_add(edj, "clicked", "*", _gem_clicked, NULL);
+    edje_object_signal_callback_add(edj, "clicked", "*", _gem_clicked, NULL);
     // TODO edje_object_signal_callback_add(edj, "up", "*", _gem_clicked, NULL);
-    edje_object_signal_callback_add(edj, "down", "*", _gem_clicked, NULL);
+    // TODO edje_object_signal_callback_add(edj, "down", "*", _gem_clicked, NULL);
 
     return edj;
 }
