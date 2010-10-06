@@ -1,10 +1,12 @@
-AC_INIT([Mokojeweled], [0.0.1], [daniele.athome@gmail.com], [mokojeweled])
+AC_INIT([Mokojeweled], [0.1], [daniele.athome@gmail.com], [mokojeweled])
 AC_CONFIG_SRCDIR(src)
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE
 
+AC_ISC_POSIX
+AC_GNU_SOURCE
 AC_DISABLE_STATIC
 AC_PROG_CC
 AC_PROG_LIBTOOL
