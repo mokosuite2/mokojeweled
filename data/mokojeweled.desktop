@@ -1,7 +1,6 @@
 [Desktop Entry]
 Version=1.0
 Name=Mokojeweled
-Encoding=UTF-8
 StartupNotify=true
 Exec=mokojeweled
 Terminal=false
