@@ -1,0 +1,42 @@
+%define _missing_doc_files_terminate_build 0
+
+Summary: Bejeweled clone made with EFL
+Name: @PACKAGE@
+Version: @VERSION@
+Release: 0
+License: GPLv3+
+Group: Applications/Games
+Source: %{name}-%{version}.tar.gz
+Packager: %{?_packager:%{_packager}}%{!?_packager:Rui Miguel Seabra <rms@1407.org>}
+Vendor: Daniele Ricci <daniele.athome@gmail.com>
+Distribution: %{?_distribution:%{_distribution}}%{!?_distribution:%{_vendor}}
+URL: http://gitorious.org/mokosuite2/mokojeweled
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+Requires: elementary, glib2
+BuildRequires: elementary-devel, glib2-devel
+
+%description
+Bejeweled clone made with EFL
+
+%prep
+%setup -q
+
+%build
+%{configure} --prefix=%{_prefix}
+%{__make} %{?_smp_mflags} %{?mflags}
+
+%install
+%{__make} %{?mflags_install} DESTDIR=$RPM_BUILD_ROOT install
+
+%clean
+test "x$RPM_BUILD_ROOT" != "x/" && rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-, root, root)
+%doc ACKNOWLEDGEMENTS AUTHORS COPYING README TODO ChangeLog NEWS
+%{_bindir}/mokojeweled
+%{_datadir}/applications/mokojeweled.desktop
+%{_datadir}/mokojeweled/themes/gweled.edj
+%{_datadir}/locale/*
+
+%changelog
