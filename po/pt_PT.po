@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: mokojeweled\n"
 "Report-Msgid-Bugs-To: http://gitorious.org/mokosuite2/\n"
 "POT-Creation-Date: 2010-10-06 15:54+0100\n"
 "PO-Revision-Date: 2010-10-06 15:55+0100\n"
@@ -44,7 +44,7 @@ msgstr "Novo jogo"
 
 #: ../src/menu.c:102
 msgid "Options"
-msgstr "Opções"
+msgstr "Opes"
 
 #: ../src/menu.c:103
 msgid "Exit"
