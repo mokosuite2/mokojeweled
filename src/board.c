@@ -291,7 +291,7 @@ static bool _swap_step(void *data)
 
         if (align1 || align2) {
             Eina_List* align = concat_duplicate(align1, align2);
-            running++;
+            // running--; running++;
             ecore_timer_add(0.2, _remove_gems, align);
             return FALSE;
         }
@@ -301,12 +301,14 @@ static bool _swap_step(void *data)
                 ecore_animator_del(swap_anim);
                 backward = TRUE;
                 swap();
+                running--;
                 return FALSE;
             }
         }
 
         backward = FALSE;
         selected1 = selected2 = NULL;
+        running--;
         return FALSE;
     }
 
@@ -339,6 +341,7 @@ static void swap(void)
     dy2 = sign(selected2_dest[1] - coords2_real[1]) * GEM_OFFSET;
 
     // avvia animazione
+    running++;
     swap_anim = ecore_animator_add(_swap_step, NULL);
 }
 
@@ -601,11 +604,13 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index)
 
 static void _close(void *data, Evas_Object* obj, void* event)
 {
-    // TODO pause menu
-    destroy_board();
-    mokowin_destroy(win);
-    win = NULL;
-    menu();
+    if (!running) {
+        // TODO pause menu
+        destroy_board();
+        mokowin_destroy(win);
+        win = NULL;
+        menu();
+    }
 }
 
 static void create_win(void)
