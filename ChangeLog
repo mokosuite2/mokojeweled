@@ -1,17 +1,6 @@
-2010-10-05  gettextize  <bug-gnu-gettext@gnu.org>
-
-	* m4/gettext.m4: New file, from gettext-0.18.1.
-	* m4/iconv.m4: New file, from gettext-0.18.1.
-	* m4/lib-ld.m4: New file, from gettext-0.18.1.
-	* m4/lib-link.m4: New file, from gettext-0.18.1.
-	* m4/lib-prefix.m4: New file, from gettext-0.18.1.
-	* m4/nls.m4: New file, from gettext-0.18.1.
-	* m4/po.m4: New file, from gettext-0.18.1.
-	* m4/progtest.m4: New file, from gettext-0.18.1.
-
 2010-10-05  - Rui Miguel Silva Seabra <rms@1407.org>
 	* autotool support
 
-2010-xx-yy  - Daniele Ricci <daniele.athome@gmail.com>
+2010-10-04  - Daniele Ricci <daniele.athome@gmail.com>
 	* first version
 
