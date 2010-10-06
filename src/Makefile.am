@@ -19,4 +19,7 @@ mokojeweled_SOURCES =	\
 	gui.c		\
 	gui.h		\
 	board.c		\
-	board.h
+	board.h		\
+	theme.c		\
+	theme.h
+

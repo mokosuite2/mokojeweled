@@ -1,6 +1,6 @@
 /*
  * Mokojeweled
- * Game board
+ * Game themes
  * Copyright (C) 2009-2010 Daniele Ricci <daniele.athome@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,20 +18,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __BOARD_H
-#define __BOARD_H
-
 #include "globals.h"
+#include "theme.h"
 
-#define GEM_SIZE    80  // gem size
-#define GEM_OFFSET  10  // movement offset
+// FIXME everything is hardcoded now!!
 
-#define BOARD_HEIGHT        (WIN_HEIGHT / GEM_SIZE)
-#define BOARD_WIDTH         (WIN_WIDTH / GEM_SIZE)
+const char* theme_get_path(void)
+{
+    return DATADIR "/" PACKAGE "/themes/gweled.edj";
+}
 
-// number of minimal aligned gems
-#define GEMS_MIN_ALIGNED    3
-
-void board_new_game(GameType type);
-
-#endif  /* __BOARD_H */
+int theme_gem_count(void)
+{
+    return 7;
+}

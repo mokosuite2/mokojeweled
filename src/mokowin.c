@@ -399,10 +399,11 @@ MokoWin* mokowin_sized_new_with_type(const char *name, size_t size, Elm_Win_Type
     evas_object_event_callback_add(mw->win, EVAS_CALLBACK_KEY_UP, _key_up, mw);
 
     /* background */
-    mw->bg = elm_bg_add (mw->win);
+    mw->bg = elm_bg_add(mw->win);
 
-    evas_object_size_hint_weight_set (mw->bg, 1.0, 1.0);
-    elm_win_resize_object_add (mw->win, mw->bg);
+    evas_object_size_hint_weight_set(mw->bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(mw->bg, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_win_resize_object_add(mw->win, mw->bg);
 
     evas_object_show(mw->bg);
 
