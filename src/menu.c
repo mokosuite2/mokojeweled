@@ -63,7 +63,7 @@ static Evas_Object* add_menu_button(Evas_Object* box, const char* title, Evas_Sm
     return button;
 }
 
-static void create_menu(void)
+static void create_win(void)
 {
     win = mokowin_new(PACKAGE);
     win->delete_callback = _close;
@@ -106,7 +106,7 @@ static void create_menu(void)
 void menu(void)
 {
     if (!win)
-        create_menu();
+        create_win();
 
     mokowin_activate(win);
 }

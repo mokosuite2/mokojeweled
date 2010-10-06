@@ -21,12 +21,14 @@
 #ifndef __GLOBALS_H
 #define __GLOBALS_H
 
-#include <Elementary.h>
-#include <libintl.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <Elementary.h>
+#include <libintl.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // default log domain
 #undef EINA_LOG_DOMAIN_DEFAULT
@@ -61,7 +63,7 @@ typedef Eina_Bool bool;
 #define WIN_WIDTH       480
 #define WIN_HEIGHT      600
 
-// FIXME replace with a working one :)
+// this should work...
 #define _   gettext
 
 #define return_if_fail(x)   ({ \
@@ -94,9 +96,32 @@ typedef Eina_Bool bool;
  * @return allocated area
  */
 #define m_new0(t, n)     ({ \
-    void* m = malloc(sizeof(t) * n); \
-    memset(m, 0, sizeof(t) * n); \
+    void* m = malloc0(sizeof(t) * n); \
     ((t*) m); \
+})
+
+/**
+ * malloc(sizeof(t) * n)
+ * @param t type
+ * @param n count
+ * @return allocated area
+ */
+#define m_new(t, n)     ({ \
+    void* m = malloc(sizeof(t) * n); \
+    ((t*) m); \
+})
+
+/**
+ * Return-wrapper for asprintf
+ * @param fmt
+ * @param va_args
+ * @return
+ */
+#define strdup_sprintf(fmt, ...)   ({ \
+    char* out = NULL; \
+    if (asprintf(&out, fmt, __VA_ARGS__) < 0) \
+        out = NULL; \
+    out; \
 })
 
 /**
