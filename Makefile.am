@@ -14,6 +14,7 @@ MAINTAINERCLEANFILES = \
 	m4/isc-posix.m4 m4/lcmessage.m4 m4/lib-ld.m4 m4/lib-link.m4 \
 	m4/lib-prefix.m4 m4/nls.m4 m4/po.m4 m4/progtest.m4 m4/stdint_h.m4 \
 	m4/uintmax_t.m4 m4/ulonglong.m4 \
+	po/Makefile.in.in \
 	po/Makevars.template \
 	po/Rules-quot \
 	po/boldquot.sed \
