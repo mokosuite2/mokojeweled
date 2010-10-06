@@ -33,4 +33,5 @@ data/themes/Makefile
 data/themes/gweled/Makefile
 po/Makefile.in
 src/Makefile
+mokojeweled.spec
 ])

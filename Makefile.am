@@ -11,3 +11,6 @@ MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.sub \
 
 #maintainer-clean-local:
 #	$(RM) -R m4
+
+EXTRA_DIST = \
+	mokojeweled.spec

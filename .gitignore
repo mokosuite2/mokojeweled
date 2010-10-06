@@ -13,6 +13,7 @@ data/Makefile.in
 data/themes/*.edj
 data/themes/Makefile
 data/themes/Makefile.in
+data/themes/gweled/gweled.edj
 depcomp
 INSTALL
 install-sh
@@ -27,9 +28,11 @@ m4/ltversion.m4
 Makefile
 Makefile.in
 missing
+mokojeweled.spec
 po/Makefile
 po/Makefile.in.in
 po/POTFILES
+po/pt_PT.gmo
 po/remove-potcdate.sed
 po/stamp-it
 src/.deps/
