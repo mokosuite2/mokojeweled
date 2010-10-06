@@ -5,5 +5,4 @@ src/main.c
 src/menu.c
 src/mokoinwin.c
 src/mokowin.c
-src/test_mainwin.c
 src/theme.c
