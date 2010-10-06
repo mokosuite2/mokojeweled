@@ -3,7 +3,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = @ELEMENTARY_CFLAGS@ 		\
 		-DDATADIR=\""$(datadir)"\" 	\
 		-DLOCALEDIR=\"$(localedir)\" 	\
-		-Wall -DDEBUG
+		-Wall
 
 AM_LDFLAGS = @ELEMENTARY_LIBS@
 

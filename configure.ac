@@ -22,6 +22,16 @@ PKG_CHECK_MODULES(
 	ELEMENTARY, elementary, [], [AC_MSG_FAILURE([elementary not found])]
 )
 
+AC_ARG_ENABLE(debug,
+    AC_HELP_STRING([--enable-debug], [Enable debug build (default: disabled)]),
+    enable_debug=$enableval,
+    enable_debug=no)
+
+if test "x$enable_debug" != "xno"; then
+    AC_DEFINE(DEBUG, 1, [Define to enable debug build])
+fi
+
+
 AC_SUBST(VERSION)
 
 EFL_WITH_BIN([edje], [edje-cc], [edje_cc])

@@ -14,6 +14,6 @@ S = "${WORKDIR}/git"
 
 CFLAGS += "-DOPENMOKO"
 EXTRA_OECONF = " --with-edje-cc=${STAGING_BINDIR_NATIVE}/edje_cc"
-FILES_${PN} += "${datadir}/mokojeweled {$datadir}/applications"
+FILES_${PN} += "${datadir}/mokojeweled ${datadir}/applications ${datadir}/pixmaps"
 
 inherit pkgconfig autotools

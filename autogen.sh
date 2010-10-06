@@ -11,5 +11,5 @@ intltoolize -c --automake --force || exit 1
 cd $ORIGDIR || exit $?
 
 if [ -z "$NOCONFIGURE" ]; then
-	$srcdir/configure "$@"
+	$srcdir/configure --enable-debug "$@"
 fi

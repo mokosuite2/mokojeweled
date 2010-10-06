@@ -186,7 +186,7 @@ static void _menu_ok_click(void *data, Evas_Object *obj, void *event_info)
     }
 }
 
-void moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int index, bool selected)
+Evas_Object* moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int index, bool selected)
 {
     return_if_fail(popup != NULL && label != NULL);
 
@@ -224,6 +224,7 @@ void moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int index, boo
     elm_box_pack_end(popup->vbox, b);
 
     popup->last = b;
+    return b;
 }
 
 MokoPopupMenu* moko_popup_menu_new(MokoWin *parent, const char *message, MokoPopupMenuStyle style, void* callback, void* data)

@@ -192,7 +192,7 @@ struct _MokoPopupMenu {
 
 typedef struct _MokoPopupMenu MokoPopupMenu;
 
-void moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int index, bool selected);
+Evas_Object* moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int index, bool selected);
 
 MokoPopupMenu* moko_popup_menu_new(MokoWin *parent, const char *message, MokoPopupMenuStyle style, void* callback, void* data);
 

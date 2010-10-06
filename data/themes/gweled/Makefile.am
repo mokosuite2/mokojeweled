@@ -8,22 +8,16 @@ filesdir = $(datadir)/mokojeweled/themes
 files_DATA = gweled.edj
 
 EXTRA_DIST = \
+	$(files_DATA) \
 	theme.edc \
 	border.png \
 	gem01.png \
-	gem01.svg \
 	gem02.png \
-	gem02.svg \
 	gem03.png \
-	gem03.svg \
 	gem04.png \
-	gem04.svg \
 	gem05.png \
-	gem05.svg \
 	gem06.png \
-	gem06.svg \
-	gem07.png \
-	gem07.svg
+	gem07.png
 
 gweled.edj: theme.edc
 	$(EDJE_CC) $(EDJE_FLAGS) $< $@
