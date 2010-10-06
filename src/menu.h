@@ -1,6 +1,6 @@
 /*
  * Mokojeweled
- * Entry point
+ * Main menu
  * Copyright (C) 2009-2010 Daniele Ricci <daniele.athome@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,31 +18,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "globals.h"
-#include "menu.h"
 
-// default log domain
-int _log_dom = -1;
+#ifndef __MENU_H
+#define __MENU_H
 
-int main(int argc, char* argv[])
-{
-    // initialize log
-    eina_init();
-    _log_dom = eina_log_domain_register(PACKAGE, EINA_COLOR_CYAN);
-    eina_log_domain_level_set(PACKAGE, LOG_LEVEL);
+/**
+ * Creates (if doesn't exists) and display the main menu window.
+ */
+void menu(void);
 
-    EINA_LOG_INFO("%s version %s", PACKAGE_NAME, VERSION);
-
-    elm_init(argc, argv);
-
-    // animation frame time
-    ecore_animator_frametime_set(FRAMETIME);
-
-    // main menu! :)
-    menu();
-
-    elm_run();
-    elm_shutdown();
-
-    return EXIT_SUCCESS;
-}
+#endif  /* __MENU_H */

@@ -1,6 +1,6 @@
 /*
  * Mokojeweled
- * Entry point
+ * Game board
  * Copyright (C) 2009-2010 Daniele Ricci <daniele.athome@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,30 +19,12 @@
  */
 
 #include "globals.h"
-#include "menu.h"
+#include "gui.h"
 
-// default log domain
-int _log_dom = -1;
+// board window
+static MokoWin* win = NULL;
 
-int main(int argc, char* argv[])
+void board_new_game(GameType type)
 {
-    // initialize log
-    eina_init();
-    _log_dom = eina_log_domain_register(PACKAGE, EINA_COLOR_CYAN);
-    eina_log_domain_level_set(PACKAGE, LOG_LEVEL);
-
-    EINA_LOG_INFO("%s version %s", PACKAGE_NAME, VERSION);
-
-    elm_init(argc, argv);
-
-    // animation frame time
-    ecore_animator_frametime_set(FRAMETIME);
-
-    // main menu! :)
-    menu();
-
-    elm_run();
-    elm_shutdown();
-
-    return EXIT_SUCCESS;
+    // TODO
 }

@@ -613,9 +613,6 @@ void test_mainwindow()
     remove_alignments();
     fall_gems();
 
-    //refill();
-    //autoremove_alignments();
-
     evas_object_resize(win, WIDTH, HEIGHT);
     evas_object_show(win);
 
