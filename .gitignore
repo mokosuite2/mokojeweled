@@ -71,3 +71,5 @@ po/insert-header.sin
 po/mokojeweled.pot
 po/quot.sed
 po/remove-potcdate.sin
+mkinstalldirs
+po/stamp-po
