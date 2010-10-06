@@ -62,11 +62,18 @@ static int sign(int num)
     return (num != 0) ? num / abs(num) : 0;
 }
 
+/**
+ * Returns true if the coordinates are directly adjacent.
+ */
 static bool is_adjacent(int x1, int y1, int x2, int y2)
 {
     return ((abs(x2 - x1) == 1 && y2 == y1) ^ (abs(y2 - y1) == 1 && x2 == x1));
 }
 
+/**
+ * Marks the selected gems as unselected.
+ * @param delete if true, the cached variables are set to NULL
+ */
 static void unselect(bool delete)
 {
     if (selected1) {
@@ -80,6 +87,10 @@ static void unselect(bool delete)
     }
 }
 
+/**
+ * Iterates the second list to find duplicates in the first list.
+ * @return a new list without duplicates
+ */
 static Eina_List* iterate_duplicate(Eina_List* res, Eina_List* list)
 {
     Eina_List *iter;
@@ -93,6 +104,10 @@ static Eina_List* iterate_duplicate(Eina_List* res, Eina_List* list)
     return res;
 }
 
+/**
+ * Merges two list eliminating duplicates.
+ * @return a merge list without duplicates
+ */
 static Eina_List* concat_duplicate(Eina_List* list1, Eina_List* list2)
 {
     Eina_List* res = iterate_duplicate(NULL, list1);
@@ -100,6 +115,9 @@ static Eina_List* concat_duplicate(Eina_List* list1, Eina_List* list2)
     return iterate_duplicate(res, list2);
 }
 
+/**
+ * Refills the board with missing gems, then triggers gems falling down.
+ */
 static void refill(void)
 {
     int i, j, k;
@@ -192,6 +210,11 @@ static Eina_List* _check_align(Evas_Object* g, int dx, int dy)
     return aligned;
 }
 
+/**
+ * Check alignments around the given gem.
+ * @param gem
+ * @return a list of aligned gems (included the input one)
+ */
 static Eina_List* check_alignment(Evas_Object* gem)
 {
     //int index = GPOINTER_TO_INT(evas_object_data_get(gem, "index"));
@@ -290,6 +313,9 @@ static bool _swap_step(void *data)
     return TRUE;
 }
 
+/**
+ * Swaps the selected gems, then check for alignments.
+ */
 static void swap(void)
 {
     // deseleziona solo graficamente
@@ -316,6 +342,9 @@ static void swap(void)
     swap_anim = ecore_animator_add(_swap_step, NULL);
 }
 
+/**
+ * Destroys a gem.
+ */
 static void destroy_gem(Evas_Object* gem)
 {
     int* coords = (int *) evas_object_data_get(gem, "coords");
@@ -329,6 +358,9 @@ static void destroy_gem(Evas_Object* gem)
     free(coords);
 }
 
+/**
+ * Destroys all gems.
+ */
 static void destroy_board(void)
 {
     int i, j;
@@ -381,6 +413,9 @@ static bool _falldown(void* data)
     return FALSE;
 }
 
+/**
+ * Starts gem falling down animation.
+ */
 static void fall_gems(void)
 {
     int i, j;
@@ -392,6 +427,10 @@ static void fall_gems(void)
     }
 }
 
+/**
+ * Checks alignments for each gem in the board.
+ * @return a list of gems to be removed
+ */
 static Eina_List* get_alignments(void)
 {
     Eina_List* align = NULL;
@@ -408,6 +447,9 @@ static Eina_List* get_alignments(void)
     return align;
 }
 
+/**
+ * Checks for any alignments and removes the gem.
+ */
 static void autoremove_alignments(void)
 {
     Eina_List* align = NULL;
@@ -425,6 +467,9 @@ static void autoremove_alignments(void)
     }
 }
 
+/**
+ * Check for any alignments and replace the aligned gems with new ones.
+ */
 static void remove_alignments(void)
 {
     Eina_List* align = NULL, *iter;
@@ -459,6 +504,7 @@ static void remove_alignments(void)
         remove_alignments();
 }
 
+// a gem has been clicked!
 static void _gem_clicked(void *data, Evas_Object* obj, const char* emission, const char* source)
 {
     if (running > 0) {
@@ -508,6 +554,14 @@ static void _gem_clicked(void *data, Evas_Object* obj, const char* emission, con
     }
 }
 
+/**
+ * Creates a gem.
+ * @param col column coordinate
+ * @param row row coordinate
+ * @param x x coordinate (pixels)
+ * @param y y coordinate (pixels)
+ * @param index gem index from theme, 0 for random
+ */
 static Evas_Object* make_gem(int col, int row, int x, int y, int index)
 {
     if (index <= 0) {
@@ -563,6 +617,7 @@ static void create_win(void)
     evas_object_resize(win->win, WIN_WIDTH, WIN_HEIGHT);
 }
 
+// here we go!
 static bool _start(void* data)
 {
     fall_gems();
@@ -571,6 +626,11 @@ static bool _start(void* data)
     return FALSE;
 }
 
+/**
+ * Starts a new game.
+ * Abort the previous one if any (without advice!!!).
+ * @param type the type of game to begin
+ */
 void board_new_game(GameType type)
 {
     if (!win)
