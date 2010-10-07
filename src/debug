@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$1" == "valgrind" ]; then
+valgrind --db-attach=yes ./mokojeweled
+elif [ "$1" == "debug" ]; then
+echo "run" >gdbinit
+gdb ./mokojeweled -x gdbinit
+rm -f gdbinit
+else
+./mokojeweled
+fi
