@@ -38,5 +38,6 @@ test "x$RPM_BUILD_ROOT" != "x/" && rm -rf $RPM_BUILD_ROOT
 %{_datadir}/applications/mokojeweled.desktop
 %{_datadir}/mokojeweled/themes/gweled.edj
 %{_datadir}/locale/*
+%{_datadir}/pixmaps/mokojeweled.png
 
 %changelog

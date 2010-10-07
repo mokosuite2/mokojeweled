@@ -1,3 +1,7 @@
+2010-10-07  - Rui Miguel Silva Seabra <rms@1407.org>
+	* Include a missing image in EXTRA_DIST
+	* Fix gettext usage
+
 2010-10-05  - Rui Miguel Silva Seabra <rms@1407.org>
 	* autotool support
 
