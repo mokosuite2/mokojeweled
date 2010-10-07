@@ -25,4 +25,6 @@ const char* theme_get_path(void);
 
 int theme_gem_count(void);
 
+void theme_init(const char* name);
+
 #endif  /* __THEME_H */

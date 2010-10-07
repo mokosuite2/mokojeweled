@@ -32,3 +32,10 @@ int theme_gem_count(void)
 {
     return 7;
 }
+
+// FIXME hardcoded :D
+void theme_init(const char* name)
+{
+    elm_theme_extension_add(NULL, theme_get_path());
+    elm_theme_overlay_add(NULL, "elm/bg/base/board");
+}

@@ -19,6 +19,7 @@
  */
 
 #include "globals.h"
+#include "theme.h"
 #include "menu.h"
 
 // default log domain
@@ -37,6 +38,9 @@ int main(int argc, char* argv[])
 
     // animation frame time
     ecore_animator_frametime_set(FRAMETIME);
+
+    // FIXME load from configuration
+    theme_init(NULL);
 
     // main menu! :)
     menu();

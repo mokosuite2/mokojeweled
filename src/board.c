@@ -29,6 +29,7 @@ static MokoWin* win = NULL;
 
 // gems matrix
 static Evas_Object* gems[BOARD_WIDTH][BOARD_HEIGHT] = {};
+static int gems_index[BOARD_WIDTH][BOARD_HEIGHT] = {};
 
 // currently selected gems
 static Evas_Object* selected1 = NULL;
@@ -48,13 +49,17 @@ static int dx1 = 0, dx2 = 0;
 static int dy1 = 0, dy2 = 0;
 
 static void swap(void);
-static void destroy_gem(Evas_Object* gem);
 static void refill(void);
 static void fall_gems(void);
-static Evas_Object* make_gem(int col, int row, int x, int y, int index);
 static void autoremove_alignments(void);
 
-#define gem_at(x, y)    gems[x][y]
+static void destroy_gem(Evas_Object* gem);
+static Evas_Object* put_gem(int col, int row, int x, int y, int index);
+static Evas_Object* make_gem(int col, int row, int x, int y, int index);
+
+#define gem_at(x, y)        gems[x][y]
+#define gem_index(x, y)     gems_index[x][y]
+
 
 // can't define this as a macro - doesn't work properly
 static int sign(int num)
@@ -128,6 +133,7 @@ static void refill(void)
 
                 for (k = j; k > 0; k--) {
                     gems[i][k] = gems[i][k - 1];
+                    gems_index[i][k] = gems_index[i][k - 1];
                     int* coords = (int *) evas_object_data_get(gems[i][k], "coords");
                     coords[1]++;
                 }
@@ -136,11 +142,11 @@ static void refill(void)
                     int old_y;
                     evas_object_geometry_get(gems[i][1], NULL, &old_y, NULL, NULL);
 
-                    gems[i][0] = make_gem(i, 0, i * GEM_SIZE, old_y - GEM_SIZE, 0);
+                    put_gem(i, 0, i * GEM_SIZE, old_y - GEM_SIZE, 0);
                 }
 
                 else {
-                    gems[i][0] = make_gem(i, 0, i * GEM_SIZE, -GEM_SIZE, 0);
+                    put_gem(i, 0, i * GEM_SIZE, -GEM_SIZE, 0);
                 }
             }
         }
@@ -179,7 +185,7 @@ static Eina_List* _check_align(Evas_Object* g, int dx, int dy)
 {
     Eina_List* aligned = NULL;
     int* coords = (int *) evas_object_data_get(g, "coords");
-    int index = (int)(evas_object_data_get(g, "index"));
+    int index = gem_index(coords[0], coords[1]);
 
     // subito noi stessi! :)
     //aligned = g_list_append(aligned, g);
@@ -195,7 +201,7 @@ static Eina_List* _check_align(Evas_Object* g, int dx, int dy)
     //g_debug("Align/other[%dx%d]=%p", coords[0] + dx, coords[1] + dy, other);
 
     if (other) {
-        int tid = (int)(evas_object_data_get(other, "index"));
+        int tid = gem_index(coords[0] + dx, coords[1] + dy);
         //g_debug("Align/other.index=%d, this.index=%d", tid, index);
 
         // aligned!!! prosegui :)
@@ -217,12 +223,6 @@ static Eina_List* _check_align(Evas_Object* g, int dx, int dy)
  */
 static Eina_List* check_alignment(Evas_Object* gem)
 {
-    //int index = GPOINTER_TO_INT(evas_object_data_get(gem, "index"));
-    //int* coords = (int *) evas_object_data_get(gem, "coords");
-
-    //g_debug("Checking alignment for gem%02d, coords=%dx%d",
-    //    index, coords[0], coords[1]);
-
     Eina_List* left = _check_align(gem, -1, 0);
     //g_debug("Aligned on the left: %d", g_list_length(left));
     Eina_List* right = _check_align(gem, 1, 0);
@@ -270,6 +270,12 @@ static bool _swap_step(void *data)
         int* coords1 = (int *) evas_object_data_get(selected1, "coords");
         int* coords2 = (int *) evas_object_data_get(selected2, "coords");
 
+        // update index table
+        int index1 = gem_index(coords1[0], coords1[1]);
+        int index2 = gem_index(coords2[0], coords2[1]);
+        gems_index[coords1[0]][coords1[1]] = index2;
+        gems_index[coords2[0]][coords2[1]] = index1;
+
         // aggiorna le coordinate
         memcpy(coords_tmp, coords1, sizeof(int) * 2);
 
@@ -277,7 +283,7 @@ static bool _swap_step(void *data)
         memcpy(coords1, coords2, sizeof(int) * 2);
         memcpy(coords2, coords_tmp, sizeof(int) * 2);
 
-        // aggiorna la matrice
+        // update gem table
         gems[coords1[0]][coords1[1]] = selected1;
         gems[coords2[0]][coords2[1]] = selected2;
 
@@ -356,6 +362,7 @@ static void destroy_gem(Evas_Object* gem)
 
     // aggiorna la matrice delle gemme
     gems[coords[0]][coords[1]] = NULL;
+    gems_index[coords[0]][coords[1]] = 0;
 
     // libera altri dati dell'oggetto
     free(coords);
@@ -371,7 +378,6 @@ static void destroy_board(void)
         for (j = 0; j < BOARD_HEIGHT; j++)
             if (gems[i][j]) {
                 destroy_gem(gems[i][j]);
-                gems[i][j] = NULL;
             }
 }
 
@@ -421,11 +427,15 @@ static bool _falldown(void* data)
  */
 static void fall_gems(void)
 {
-    int i, j;
+    int i, j, y;
     for (i = 0; i < BOARD_WIDTH; i++) {
         for (j = 0; j < BOARD_HEIGHT; j++) {
-            running++;
-            ecore_animator_add(_falldown, gems[i][j]);
+            evas_object_geometry_get(gem_at(i, j), NULL, &y, NULL, NULL);
+
+            if (y < (j * GEM_SIZE)) {
+                running++;
+                ecore_animator_add(_falldown, gem_at(i, j));
+            }
         }
     }
 }
@@ -497,8 +507,8 @@ static void remove_alignments(void)
         EINA_LOG_DBG("Deleting gem %p", gem);
         destroy_gem(gem);
 
-        // rimpiazza subito!
-        gems[r][c] = make_gem(r, c, x, y, 0);
+        // replace immediately
+        put_gem(r, c, x, y, 0);
     }
 
     eina_list_free(align);
@@ -558,19 +568,34 @@ static void _gem_clicked(void *data, Evas_Object* obj, const char* emission, con
 }
 
 /**
- * Creates a gem.
- * @param col column coordinate
- * @param row row coordinate
- * @param x x coordinate (pixels)
- * @param y y coordinate (pixels)
+ * Creates and store a gem in the gems tables.
+ * Same parameters as make_gem().
  * @param index gem index from theme, 0 for random
  */
-static Evas_Object* make_gem(int col, int row, int x, int y, int index)
+static Evas_Object* put_gem(int col, int row, int x, int y, int index)
 {
     if (index <= 0) {
         index = (rand() % theme_gem_count()) + 1;
     }
 
+    Evas_Object* gem = make_gem(col, row, x, y, index);
+    // add to tables
+    gems[col][row] = gem;
+    gems_index[col][row] = index;
+
+    return gem;
+}
+
+/**
+ * Creates a gem.
+ * @param col column coordinate
+ * @param row row coordinate
+ * @param x x coordinate (pixels)
+ * @param y y coordinate (pixels)
+ * @param index gem index from theme
+ */
+static Evas_Object* make_gem(int col, int row, int x, int y, int index)
+{
     Evas_Object* layout = elm_layout_add(win->win);
     evas_object_size_hint_weight_set(layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(layout, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -592,7 +617,6 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index)
     coords[1] = row;
     evas_object_data_set(edj, "coords", coords);
     evas_object_data_set(edj, "layout", layout);
-    evas_object_data_set(edj, "index", (void *) (index));
     evas_object_data_set(edj, "speed", (void *) (0));
 
     edje_object_signal_callback_add(edj, "clicked", "*", _gem_clicked, NULL);
@@ -620,6 +644,8 @@ static void create_win(void)
 
     elm_win_title_set(win->win, PACKAGE_NAME);
     evas_object_resize(win->win, WIN_WIDTH, WIN_HEIGHT);
+
+    elm_object_style_set(win->bg, "board");
 }
 
 // here we go!
@@ -652,7 +678,7 @@ void board_new_game(GameType type)
     // populate the board
     for (i = 0; i < BOARD_WIDTH; i++)
         for (j = 0; j < BOARD_HEIGHT; j++)
-            gems[i][j] = make_gem(i, j, i * GEM_SIZE, (j - BOARD_HEIGHT) * GEM_SIZE, 0);
+            put_gem(i, j, i * GEM_SIZE, (j - BOARD_HEIGHT) * GEM_SIZE, 0);
 
     // remove alignments
     remove_alignments();
