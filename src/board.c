@@ -41,12 +41,21 @@ static uint running = 0;
 // swap going back flag
 static bool backward = FALSE;
 
-// gem swapping stuff
+// gem swapping stuff (FIXME this can be done in better ways)
 static Ecore_Animator* swap_anim = NULL;
 static int selected1_dest[2] = {-1, -1};
 static int selected2_dest[2] = {-1, -1};
 static int dx1 = 0, dx2 = 0;
 static int dy1 = 0, dy2 = 0;
+
+// running game data
+static int current_level = 0;
+static int current_type = -1;
+
+// scores
+// TODO not used yet -- static int score_move = 0;      // move score buffer
+static int score_level = 0;     // level score
+static int score_total = 0;     // overall (game) score
 
 static void swap(void);
 static void refill(void);
@@ -73,6 +82,45 @@ static int sign(int num)
 static bool is_adjacent(int x1, int y1, int x2, int y2)
 {
     return ((abs(x2 - x1) == 1 && y2 == y1) ^ (abs(y2 - y1) == 1 && x2 == x1));
+}
+
+/**
+ * Updates the score progress bar.
+ */
+static void update_score_bar(void)
+{
+    // TODO bar for timed game :)
+
+    Edje_Message_Float* px = m_new0(Edje_Message_Float, 1);
+    // score_level : (current_level * base_score) = x : 1.0
+    // x = score_level / (current_level * base_score)
+    px->val = (double) score_level / (current_level * LEVEL_SCORE);
+    if (px->val > 1.0) px->val = 1.0;
+    EINA_LOG_DBG("Updating score bar to %f (current_level = %d, score_level = %d)",
+        px->val, current_level, score_level);
+
+    edje_object_message_send(win->layout_edje, EDJE_MESSAGE_FLOAT, 0, px);
+    free(px);
+}
+
+/**
+ * Check if level has been completed, if so step to the next one.
+ */
+static void check_nextlevel(void)
+{
+    // TODO check for timed game :)
+
+    if (score_level >= (current_level * LEVEL_SCORE)) {
+        board_next_level();
+    }
+}
+
+static bool _check_next_level(void* data)
+{
+    check_nextlevel();
+
+    running--;
+    return FALSE;
 }
 
 /**
@@ -169,9 +217,14 @@ static bool _remove_gems(void* list)
     EINA_LIST_FOREACH((Eina_List*) list, iter, data) {
         EINA_LOG_DBG("Deleting gem %p", data);
         destroy_gem((Evas_Object*) data);
+        score_level += GEM_POINTS;
+        score_total += GEM_POINTS;
     }
 
     eina_list_free((Eina_List *) list);
+
+    EINA_LOG_DBG("Level score = %d, total score = %d", score_level, score_total);
+    update_score_bar();
 
     running--;
 
@@ -477,6 +530,9 @@ static void autoremove_alignments(void)
     else {
         eina_list_free(align);
         selected1 = selected2 = NULL;
+
+        running++;
+        ecore_timer_add(0.5, _check_next_level, NULL);
     }
 }
 
@@ -639,8 +695,9 @@ static void _close(void *data, Evas_Object* obj, void* event)
 
 static void create_win(void)
 {
-    win = mokowin_new(PACKAGE);
+    win = mokowin_new(PACKAGE, FALSE);
     win->delete_callback = _close;
+    mokowin_create_layout(win, theme_get_path(), "board/bg");
 
     elm_win_title_set(win->win, PACKAGE_NAME);
     evas_object_resize(win->win, WIN_WIDTH, WIN_HEIGHT);
@@ -658,15 +715,10 @@ static bool _start(void* data)
 }
 
 /**
- * Starts a new game.
- * Abort the previous one if any (without advice!!!).
- * @param type the type of game to begin
+ * Resets the board.
  */
-void board_new_game(GameType type)
+static void board_reset(void)
 {
-    if (!win)
-        create_win();
-
     int i, j;
 
     // random seed
@@ -686,6 +738,37 @@ void board_new_game(GameType type)
     // let's start!
     running++;
     ecore_timer_add(0.5, _start, NULL);
+}
+
+/**
+ * Steps to the next level.
+ * Reset the level score and reset the board.
+ */
+void board_next_level(void)
+{
+    current_level++;
+    EINA_LOG_INFO("Starting level %d (total score %d)",
+        current_level, score_total);
+
+    score_level = 0;
+    update_score_bar();
+    board_reset();
+}
+
+/**
+ * Starts a new game.
+ * Abort the previous one if any (without advice!!!).
+ * @param type the type of game to begin
+ */
+void board_new_game(GameType type)
+{
+    if (!win)
+        create_win();
+
+    current_type = type;
+    score_total = 0;
+    current_level = 0;
+    board_next_level();
 
     mokowin_activate(win);
 }

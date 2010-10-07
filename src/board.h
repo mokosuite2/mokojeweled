@@ -23,14 +23,19 @@
 
 #include "globals.h"
 
-#define GEM_SIZE    80  // gem size
-#define GEM_OFFSET  10  // movement offset
+#define GEM_SIZE            80  // gem size
+#define GEM_OFFSET          10  // movement offset
+#define GEM_POINTS          10  // points per gem
+
+#define LEVEL_SCORE         800 // level score base
 
 #define BOARD_HEIGHT        (WIN_HEIGHT / GEM_SIZE)
 #define BOARD_WIDTH         (WIN_WIDTH / GEM_SIZE)
 
 // number of minimal aligned gems
 #define GEMS_MIN_ALIGNED    3
+
+void board_next_level(void);
 
 void board_new_game(GameType type);
 

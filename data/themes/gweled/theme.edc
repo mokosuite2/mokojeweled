@@ -1,5 +1,6 @@
 #define COLOR_NONE 0 0 0 0;
-#define COLOR_ALT_GRAY 100 100 100 255;
+#define COLOR_BG 100 100 100 255;
+#define COLOR_BAR 248 169 0 255;
 
 #define gem(n) \
     group { \
@@ -87,7 +88,7 @@ collections {
         image: "border.png" COMP; \
     } \
 
-   group { name: "elm/bg/base/board";
+   group { name: "board/bg";
 
 
       parts {
@@ -96,7 +97,7 @@ collections {
         mouse_events:  0;
         type: RECT;
         description { state: "default" 0.0;
-           color: COLOR_ALT_GRAY;
+           color: COLOR_BG;
         }
      }
      part { name: "elm.swallow.background";
@@ -132,8 +133,46 @@ collections {
            rel2.offset: -5 -5;
         }
      }
-      }
-   }
+            part { name: "progress";
+                mouse_events:  0;
+                type: RECT;
+                description { state: "default" 0.0;
+                    color: COLOR_BAR;
+                    rel1.relative: 0.0 0.98;
+                    rel2.relative: 0.0 1.0;
+                }
+            }
+        }
+
+        script {
+            public message(Msg_Type:type, id, ...) {
+                if ( (type == MSG_FLOAT) && (id == 0) )
+                {
+                    new rel2_x;
+                    new rel2_y;
+                    new nrel2_x;
+                    //stop_program(PROGRAM:"custom_change");
+                    //set_state(PART:"progress", "default", 0.0);
+                    custom_state(PART:"progress", "default", 0.0);
+
+                    get_state_val(PART:"progress", STATE_REL2, rel2_x, rel2_y);
+
+                    nrel2_x = getarg(2) // - rel2_x;
+                    set_state_val(PART:"progress", STATE_REL2, nrel2_x, rel2_y);
+                    set_state(PART:"progress", "custom", 0.0);
+                    //run_program(PROGRAM:"custom_change");
+                }
+            }
+        }
+
+        programs {
+            program { name: "custom_change";
+                action: STATE_SET "custom" 0.0;
+                transition: ACCELERATE 1.0;
+                target: "progress";
+            }
+        }
+    }
 
     gem("01")
     gem("02")

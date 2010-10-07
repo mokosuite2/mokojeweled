@@ -353,23 +353,23 @@ void mokowin_destroy(MokoWin *mw)
     free(mw);
 }
 
-MokoWin* mokowin_new(const char *name)
+MokoWin* mokowin_new(const char *name, bool create_bg)
 {
-    return mokowin_new_with_type(name, ELM_WIN_BASIC);
+    return mokowin_new_with_type(name, ELM_WIN_BASIC, create_bg);
 }
 
-MokoWin* mokowin_sized_new(const char *name, size_t size)
+MokoWin* mokowin_sized_new(const char *name, size_t size, bool create_bg)
 {
-    return mokowin_sized_new_with_type(name, size, ELM_WIN_BASIC);
+    return mokowin_sized_new_with_type(name, size, ELM_WIN_BASIC, create_bg);
 }
 
-MokoWin* mokowin_new_with_type(const char *name, Elm_Win_Type type)
+MokoWin* mokowin_new_with_type(const char *name, Elm_Win_Type type, bool create_bg)
 {
-    return mokowin_sized_new_with_type(name, sizeof(MokoWin), type);
+    return mokowin_sized_new_with_type(name, sizeof(MokoWin), type, create_bg);
 }
 
 
-MokoWin* mokowin_sized_new_with_type(const char *name, size_t size, Elm_Win_Type type)
+MokoWin* mokowin_sized_new_with_type(const char *name, size_t size, Elm_Win_Type type, bool create_bg)
 {
     MokoWin *mw = malloc0(size);
 
@@ -398,14 +398,16 @@ MokoWin* mokowin_sized_new_with_type(const char *name, size_t size, Elm_Win_Type
     evas_object_event_callback_add(mw->win, EVAS_CALLBACK_KEY_DOWN, _key_down, mw);
     evas_object_event_callback_add(mw->win, EVAS_CALLBACK_KEY_UP, _key_up, mw);
 
-    /* background */
-    mw->bg = elm_bg_add(mw->win);
+    if (create_bg) {
+        /* background */
+        mw->bg = elm_bg_add(mw->win);
 
-    evas_object_size_hint_weight_set(mw->bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_align_set(mw->bg, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_win_resize_object_add(mw->win, mw->bg);
+        evas_object_size_hint_weight_set(mw->bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+        evas_object_size_hint_align_set(mw->bg, EVAS_HINT_FILL, EVAS_HINT_FILL);
+        elm_win_resize_object_add(mw->win, mw->bg);
 
-    evas_object_show(mw->bg);
+        evas_object_show(mw->bg);
+    }
 
     return mw;
 }

@@ -107,10 +107,10 @@ void mokowin_hide(MokoWin *mw);
 
 void mokowin_destroy(MokoWin *mw);
 
-MokoWin* mokowin_new(const char *name);
-MokoWin* mokowin_sized_new(const char *name, size_t size);
-MokoWin* mokowin_new_with_type(const char *name, Elm_Win_Type type);
-MokoWin* mokowin_sized_new_with_type(const char *name, size_t size, Elm_Win_Type type);
+MokoWin* mokowin_new(const char *name, bool create_bg);
+MokoWin* mokowin_sized_new(const char *name, size_t size, bool create_bg);
+MokoWin* mokowin_new_with_type(const char *name, Elm_Win_Type type, bool create_bg);
+MokoWin* mokowin_sized_new_with_type(const char *name, size_t size, Elm_Win_Type type, bool create_bg);
 
 /* -- MokoInwin -- */
 
