@@ -836,7 +836,7 @@ void board_new_game(GameType type)
     EINA_LOG_DBG("Starting new game, type %d", type);
     game_type = type;
     score_total = 0;
-    current_level = 20;
+    current_level = 0;
     board_next_level();
 
     mokowin_activate(win);
