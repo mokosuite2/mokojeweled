@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mokojeweled\n"
 "Report-Msgid-Bugs-To: http://gitorious.org/mokosuite2/\n"
-"POT-Creation-Date: 2010-10-07 12:57+0200\n"
+"POT-Creation-Date: 2010-10-08 09:47+0200\n"
 "PO-Revision-Date: 2010-10-07 12:30+0200\n"
 "Last-Translator: Daniele Ricci <daniele.athome@gmail.com>\n"
 "Language-Team: Italian <daniele.athome@gmail.com>\n"
@@ -28,22 +28,22 @@ msgstr "Annulla"
 msgid "Normal game"
 msgstr "Gioco normale"
 
-#: src/menu.c:50
+#: src/menu.c:47
 msgid "Timed game"
 msgstr "Gioco a tempo"
 
-#: src/menu.c:107
+#: src/menu.c:103
 msgid "Continue game"
 msgstr "Continua partita"
 
-#: src/menu.c:110
+#: src/menu.c:106
 msgid "New game"
 msgstr "Nuova partita"
 
-#: src/menu.c:114
+#: src/menu.c:110
 msgid "Options"
 msgstr "Opzioni"
 
-#: src/menu.c:117
+#: src/menu.c:113
 msgid "Exit"
 msgstr "Esci"

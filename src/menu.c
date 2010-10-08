@@ -44,11 +44,7 @@ static void _new_game(void *data, Evas_Object* obj, void* event)
     MokoPopupMenu* ng = moko_popup_menu_new(win, NULL, MOKO_POPUP_BUTTONS, _new_game2, NULL);
 
     moko_popup_menu_add(ng, _("Normal game"), GAME_TYPE_NORMAL, FALSE);
-
-    // TODO timed game
-    elm_object_disabled_set(
-        moko_popup_menu_add(ng, _("Timed game"), GAME_TYPE_TIMED, FALSE),
-        TRUE);
+    moko_popup_menu_add(ng, _("Timed game"), GAME_TYPE_TIMED, FALSE);
 
     mokoinwin_activate(MOKO_INWIN(ng));
 }

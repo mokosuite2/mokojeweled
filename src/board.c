@@ -50,17 +50,20 @@ static int dy1 = 0, dy2 = 0;
 
 // running game data
 static int current_level = 0;
-static int current_type = -1;
+static int game_type = -1;
+static Ecore_Timer* timed_game_timer = NULL;
 
 // scores
 // TODO not used yet -- static int score_move = 0;      // move score buffer
 static int score_level = 0;     // level score
 static int score_total = 0;     // overall (game) score
+static int score_bar = 0;       // progress bar score (mostly used for timed mode)
 
 static void swap(void);
 static void refill(void);
 static void fall_gems(void);
 static void autoremove_alignments(void);
+static void destroy_board(void);
 
 static void destroy_gem(Evas_Object* gem);
 static Evas_Object* put_gem(int col, int row, int x, int y, int index);
@@ -84,24 +87,67 @@ static bool is_adjacent(int x1, int y1, int x2, int y2)
     return ((abs(x2 - x1) == 1 && y2 == y1) ^ (abs(y2 - y1) == 1 && x2 == x1));
 }
 
+static int game_threshold(void)
+{
+    switch (game_type) {
+        case GAME_TYPE_TIMED:
+            return LEVEL_SCORE;
+
+        case GAME_TYPE_NORMAL:
+        default:
+            return current_level * LEVEL_SCORE;
+    }
+}
+
 /**
  * Updates the score progress bar.
  */
 static void update_score_bar(void)
 {
-    // TODO bar for timed game :)
+    // score_bar : (current_level * base_score) = x : 1.0
+    // x = score_bar / (current_level * base_score)
+    double val = (double) score_bar / game_threshold();
 
+    // send message to progress bar
     Edje_Message_Float* px = m_new0(Edje_Message_Float, 1);
-    // score_level : (current_level * base_score) = x : 1.0
-    // x = score_level / (current_level * base_score)
-    px->val = (double) score_level / (current_level * LEVEL_SCORE);
+    px->val = val;
     if (px->val > 1.0) px->val = 1.0;
+    else if (px->val < 0.0) px->val = 0.0;
+
     EINA_LOG_DBG("Updating score bar to %f (current_level = %d, score_level = %d)",
         px->val, current_level, score_level);
 
     edje_object_message_send(win->layout_edje, EDJE_MESSAGE_FLOAT, 0, px);
     free(px);
 }
+
+static void _close(void *data, Evas_Object* obj, void* event)
+{
+    if (!running) {
+        // TODO pause menu
+        destroy_board();
+        mokowin_destroy(win);
+        win = NULL;
+        menu();
+    }
+}
+
+static bool _decrease_bar(void* data)
+{
+    score_bar -= GEM_POINTS;
+
+    // FIXME ehm :)
+    if (score_bar <= 0) {
+        _close(NULL, NULL, NULL);
+    }
+
+    else {
+        update_score_bar();
+    }
+
+    return TRUE;
+}
+
 
 /**
  * Check if level has been completed, if so step to the next one.
@@ -110,7 +156,7 @@ static void check_nextlevel(void)
 {
     // TODO check for timed game :)
 
-    if (score_level >= (current_level * LEVEL_SCORE)) {
+    if (score_bar >= game_threshold()) {
         board_next_level();
     }
 }
@@ -219,6 +265,7 @@ static bool _remove_gems(void* list)
         destroy_gem((Evas_Object*) data);
         score_level += GEM_POINTS;
         score_total += GEM_POINTS;
+        score_bar += GEM_POINTS;
     }
 
     eina_list_free((Eina_List *) list);
@@ -432,6 +479,11 @@ static void destroy_board(void)
             if (gems[i][j]) {
                 destroy_gem(gems[i][j]);
             }
+
+    if (timed_game_timer) {
+        ecore_timer_del(timed_game_timer);
+        timed_game_timer = NULL;
+    }
 }
 
 static bool _falldown(void* data)
@@ -682,17 +734,6 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index)
     return edj;
 }
 
-static void _close(void *data, Evas_Object* obj, void* event)
-{
-    if (!running) {
-        // TODO pause menu
-        destroy_board();
-        mokowin_destroy(win);
-        win = NULL;
-        menu();
-    }
-}
-
 static void create_win(void)
 {
     win = mokowin_new(PACKAGE, FALSE);
@@ -708,6 +749,14 @@ static void create_win(void)
 // here we go!
 static bool _start(void* data)
 {
+    // FIXME we need to manage timer freeze/thaw a bit better
+    if (game_type == GAME_TYPE_TIMED) {
+        if (!timed_game_timer)
+            timed_game_timer = ecore_timer_add((double) 4 / current_level, _decrease_bar, NULL);
+        else
+            ecore_timer_thaw(timed_game_timer);
+    }
+
     fall_gems();
 
     running--;
@@ -750,6 +799,25 @@ void board_next_level(void)
     EINA_LOG_INFO("Starting level %d (total score %d)",
         current_level, score_total);
 
+    switch (game_type) {
+        case GAME_TYPE_NORMAL:
+            score_bar = 0;
+            break;
+        case GAME_TYPE_TIMED:
+            score_bar = LEVEL_SCORE / 2;
+
+            // freeze countdown timer if present
+            if (timed_game_timer) {
+                ecore_timer_del(timed_game_timer);
+                timed_game_timer = NULL;
+            }
+
+            break;
+        default:
+            EINA_LOG_CRIT("Unknown game type %d", game_type);
+            score_bar = 0;
+    }
+
     score_level = 0;
     update_score_bar();
     board_reset();
@@ -765,9 +833,10 @@ void board_new_game(GameType type)
     if (!win)
         create_win();
 
-    current_type = type;
+    EINA_LOG_DBG("Starting new game, type %d", type);
+    game_type = type;
     score_total = 0;
-    current_level = 0;
+    current_level = 20;
     board_next_level();
 
     mokowin_activate(win);
