@@ -64,6 +64,7 @@ static void refill(void);
 static void fall_gems(void);
 static void autoremove_alignments(void);
 static void destroy_board(void);
+static void board_reset(void);
 
 static void destroy_gem(Evas_Object* gem);
 static Evas_Object* put_gem(int col, int row, int x, int y, int index);
@@ -281,39 +282,111 @@ static bool _remove_gems(void* list)
     return FALSE;
 }
 
-static Eina_List* _check_align(Evas_Object* g, int dx, int dy)
+/**
+ * Check if a gem is part of an alignment. 
+ * Thanks to gweled
+ */
+static int is_part_of_alignment(int x, int y)
 {
-    Eina_List* aligned = NULL;
-    int* coords = (int *) evas_object_data_get(g, "coords");
-    int index = gem_index(coords[0], coords[1]);
-
-    // subito noi stessi! :)
-    //aligned = g_list_append(aligned, g);
-
-    if ((coords[0] + dx) < 0 || (coords[1] + dy) < 0 ||
-        (coords[0] + dx) >= BOARD_WIDTH || (coords[1] + dy) >= BOARD_HEIGHT) {
-
-        //g_debug("OUTER LIMITS - exiting");
-        return aligned;
-    }
-
-    Evas_Object* other = gem_at(coords[0] + dx, coords[1] + dy);
-    //g_debug("Align/other[%dx%d]=%p", coords[0] + dx, coords[1] + dy, other);
-
-    if (other) {
-        int tid = gem_index(coords[0] + dx, coords[1] + dy);
-        //g_debug("Align/other.index=%d, this.index=%d", tid, index);
-
-        // aligned!!! prosegui :)
-        if (tid == index) {
-            aligned = eina_list_merge(
-                eina_list_append(aligned, other),
-                _check_align(other, dx, dy)
-            );
+    int i, result;
+    int n0, n1, n2;
+    
+    result = 0;
+    for (i = x - 2; i <= x; i++) {
+        if (i >= 0 && i + 2 < BOARD_WIDTH) {
+            n0 = 1 << gems_index[i][y];
+            n1 = 1 << gems_index[i + 1][y];
+            n2 = 1 << gems_index[i + 2][y];
+            if (n0 & n1 & n2) {
+                result |= 1;    // is part of an horizontal alignment
+                break;
+            }
         }
     }
 
-    return aligned;
+    for (i = y - 2; i <= y; i++) {
+        if (i >= 0 && i + 2 < BOARD_HEIGHT) {
+            n0 = 1 << gems_index[x][i];
+            n1 = 1 << gems_index[x][i + 1];
+            n2 = 1 << gems_index[x][i + 2];
+            if (n0 & n1 & n2) {
+                result |= 2;    // is part of a vertical alignment
+                break;
+            }
+        }
+    }
+    
+    return result;
+}
+
+/**
+ * WARNING: this function doesn't update the "coords" property of gems
+ */
+static void swap_gems (int x1, int y1, int x2, int y2)
+{
+    int tmp_index;
+    Evas_Object* tmp_gem = NULL;
+
+    tmp_gem = gem_at(x1, y1);
+    gem_at(x1, y1) = gem_at(x2, y2);
+    gem_at(x2, y2) = tmp_gem;
+
+    tmp_index = gem_index(x1, y1);
+    gem_index(x1, y1) = gem_index(x2, y2);
+    gem_index(x2, y2) = tmp_index;
+} 
+
+/**
+ * Checks if there are moves left.
+ * Thanks to gweled
+ */
+static bool check_moves_left(int *pi, int *pj)
+{
+    int i, j;
+    
+    for (j = BOARD_HEIGHT - 1; j >= 0; j--)
+        for (i = BOARD_WIDTH - 1; i >= 0; i--) {
+            if (i > 0) {
+                swap_gems (i - 1, j, i, j);
+                if (is_part_of_alignment (i, j)) {
+                    swap_gems (i - 1, j, i, j);
+                    goto move_found;
+                }
+                swap_gems (i - 1, j, i, j);
+            }
+            if (i < 7) {
+                swap_gems (i + 1, j, i, j);
+                if (is_part_of_alignment (i, j)) {
+                    swap_gems (i + 1, j, i, j);
+                    goto move_found;
+                }
+                swap_gems (i + 1, j, i, j);
+            }
+            if (j > 0) {
+                swap_gems (i, j - 1, i, j);
+                if (is_part_of_alignment (i, j)) {
+                    swap_gems (i, j - 1, i, j);
+                    goto move_found;
+                }
+                swap_gems (i, j - 1, i, j);
+            }
+            if (j < 7) {
+                swap_gems (i, j + 1, i, j);
+                if (is_part_of_alignment (i, j)) {
+                    swap_gems (i, j + 1, i, j);
+                    goto move_found;
+                }
+                swap_gems (i, j + 1, i, j);
+            }
+        }   
+    return FALSE;
+      
+move_found:
+    if (pi && pj) {
+        *pi = i;
+        *pj = j;
+    }
+    return TRUE;
 }
 
 /**
@@ -323,28 +396,49 @@ static Eina_List* _check_align(Evas_Object* g, int dx, int dy)
  */
 static Eina_List* check_alignment(Evas_Object* gem)
 {
-    Eina_List* left = _check_align(gem, -1, 0);
-    //g_debug("Aligned on the left: %d", g_list_length(left));
-    Eina_List* right = _check_align(gem, 1, 0);
-    //g_debug("Aligned on the right: %d", g_list_length(right));
+    Eina_List* list = NULL;
+    int i;
+    int* coords = (int *) evas_object_data_get(gem, "coords");
+    int x = coords[0], y = coords[1];
 
-    Eina_List* top = _check_align(gem, 0, -1);
-    //g_debug("Aligned on top: %d", g_list_length(top));
+    int index = gem_index(x, y);
 
-    Eina_List* bottom = _check_align(gem, 0, 1);
-    //g_debug("Aligned on bottom: %d", g_list_length(bottom));
-
-    Eina_List* aligned = NULL;
-    if ((eina_list_count(left) + eina_list_count(right) + 1) >= GEMS_MIN_ALIGNED) {
-        aligned = eina_list_merge(aligned, eina_list_merge(left, right));
+    int align = is_part_of_alignment(x, y);
+    
+    // horizontal alignment - check x axis
+    if (align & 0x1) {
+        for (i = x; i < BOARD_WIDTH; i++) {
+            if (gem_index(i, y) == index)
+                list = eina_list_append(list, gem_at(i, y));
+            else
+                break;
+        }
+        for (i = x - 1; i >= 0; i--) {
+            if (gem_index(i, y) == index)
+                list = eina_list_append(list, gem_at(i, y));
+            else
+                break;
+        }
     }
 
-    if ((eina_list_count(top) + eina_list_count(bottom) + 1) >= GEMS_MIN_ALIGNED) {
-        aligned = eina_list_merge(aligned, eina_list_merge(top, bottom));
+    // vertical alignment - check y axis
+    if (align & 0x2) {
+        for (i = y; i < BOARD_HEIGHT; i++) {
+            if (gem_index(x, i) == index)
+                list = eina_list_append(list, gem_at(x, i));
+            else
+                break;
+        }
+        for (i = y - 1; i >= 0; i--) {
+            if (gem_index(x, i) == index)
+                list = eina_list_append(list, gem_at(x, i));
+            else
+                break;
+        }
     }
 
-    return eina_list_count(aligned) > 0 ?
-        eina_list_append(aligned, gem) :
+    return eina_list_count(list) > 0 ?
+        eina_list_append(list, gem) :
         NULL;
 }
 
@@ -486,6 +580,14 @@ static void destroy_board(void)
     }
 }
 
+static bool _board_reset(void* data)
+{
+    board_reset();
+
+    running--;
+    return FALSE;
+}
+
 static bool _falldown(void* data)
 {
     Evas_Object* gem = data;
@@ -519,6 +621,24 @@ static bool _falldown(void* data)
     running--;
 
     if (!running) {
+        // no more moves!!!
+        if (!check_moves_left(NULL, NULL)) {
+            EINA_LOG_INFO("No more moves!");
+
+            if (game_type == GAME_TYPE_NORMAL) {
+                // end game
+                _close(NULL, NULL, NULL);
+            }
+
+            else if (game_type == GAME_TYPE_TIMED) {
+                // recreate board
+                running++;
+                ecore_timer_add(0.5, _board_reset, NULL);
+            }
+
+            return FALSE;
+        }
+
         autoremove_alignments();
         // here we go again!!
         selected1 = selected2 = NULL;
