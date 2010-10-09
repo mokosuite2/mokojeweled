@@ -12,8 +12,8 @@ Vendor: Daniele Ricci <daniele.athome@gmail.com>
 Distribution: %{?_distribution:%{_distribution}}%{!?_distribution:%{_vendor}}
 URL: http://gitorious.org/mokosuite2/mokojeweled
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-Requires: elementary, glib2
-BuildRequires: elementary-devel, glib2-devel
+Requires: elementary
+BuildRequires: elementary-devel
 
 %description
 Bejeweled clone made with EFL
