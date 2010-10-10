@@ -237,11 +237,11 @@ static void refill(void)
                     int old_y;
                     evas_object_geometry_get(gems[i][1], NULL, &old_y, NULL, NULL);
 
-                    put_gem(i, 0, i * GEM_SIZE, old_y - GEM_SIZE, 0);
+                    put_gem(i, 0, i * GEM_SIZE, old_y - GEM_SIZE, -1);
                 }
 
                 else {
-                    put_gem(i, 0, i * GEM_SIZE, -GEM_SIZE, 0);
+                    put_gem(i, 0, i * GEM_SIZE, -GEM_SIZE, -1);
                 }
             }
         }
@@ -354,7 +354,7 @@ static bool check_moves_left(int *pi, int *pj)
                 }
                 swap_gems (i - 1, j, i, j);
             }
-            if (i < 7) {
+            if (i < (BOARD_WIDTH - 1)) {
                 swap_gems (i + 1, j, i, j);
                 if (is_part_of_alignment (i, j)) {
                     swap_gems (i + 1, j, i, j);
@@ -370,7 +370,7 @@ static bool check_moves_left(int *pi, int *pj)
                 }
                 swap_gems (i, j - 1, i, j);
             }
-            if (j < 7) {
+            if (j < (BOARD_HEIGHT - 1)) {
                 swap_gems (i, j + 1, i, j);
                 if (is_part_of_alignment (i, j)) {
                     swap_gems (i, j + 1, i, j);
@@ -382,6 +382,7 @@ static bool check_moves_left(int *pi, int *pj)
     return FALSE;
       
 move_found:
+    EINA_LOG_INFO("Move hint on %dx%d", i, j);
     if (pi && pj) {
         *pi = i;
         *pj = j;
@@ -556,7 +557,7 @@ static void destroy_gem(Evas_Object* gem)
 
     // aggiorna la matrice delle gemme
     gems[coords[0]][coords[1]] = NULL;
-    gems_index[coords[0]][coords[1]] = 0;
+    gems_index[coords[0]][coords[1]] = -1;
 
     // libera altri dati dell'oggetto
     free(coords);
@@ -628,6 +629,7 @@ static bool _falldown(void* data)
             if (game_type == GAME_TYPE_NORMAL) {
                 // end game
                 _close(NULL, NULL, NULL);
+                return FALSE;
             }
 
             else if (game_type == GAME_TYPE_TIMED) {
@@ -736,7 +738,7 @@ static void remove_alignments(void)
         destroy_gem(gem);
 
         // replace immediately
-        put_gem(r, c, x, y, 0);
+        put_gem(r, c, x, y, -1);
     }
 
     eina_list_free(align);
@@ -798,12 +800,12 @@ static void _gem_clicked(void *data, Evas_Object* obj, const char* emission, con
 /**
  * Creates and store a gem in the gems tables.
  * Same parameters as make_gem().
- * @param index gem index from theme, 0 for random
+ * @param index gem index from theme, -1 for random
  */
 static Evas_Object* put_gem(int col, int row, int x, int y, int index)
 {
-    if (index <= 0) {
-        index = (rand() % theme_gem_count()) + 1;
+    if (index < 0) {
+        index = rand() % theme_gem_count();
     }
 
     Evas_Object* gem = make_gem(col, row, x, y, index);
@@ -828,7 +830,7 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index)
     evas_object_size_hint_weight_set(layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(layout, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
-    char* name = strdup_sprintf("gem%02d", index);
+    char* name = strdup_sprintf("gem%02d", index + 1);
 
     elm_layout_file_set(layout, theme_get_path(), name);
     free(name);
@@ -838,7 +840,7 @@ static Evas_Object* make_gem(int col, int row, int x, int y, int index)
     evas_object_show(layout);
 
     Evas_Object* edj = elm_layout_edje_get(layout);
-    EINA_LOG_DBG("Loading gem%02d (%p) with coords %dx%d size %dx%d position %dx%d", index, edj, col, row, GEM_SIZE, GEM_SIZE, x, y);
+    EINA_LOG_DBG("Loading gem%02d (%p) with coords %dx%d size %dx%d position %dx%d", index + 1, edj, col, row, GEM_SIZE, GEM_SIZE, x, y);
 
     int* coords = m_new(int, 2);
     coords[0] = col;
@@ -899,7 +901,7 @@ static void board_reset(void)
     // populate the board
     for (i = 0; i < BOARD_WIDTH; i++)
         for (j = 0; j < BOARD_HEIGHT; j++)
-            put_gem(i, j, i * GEM_SIZE, (j - BOARD_HEIGHT) * GEM_SIZE, 0);
+            put_gem(i, j, i * GEM_SIZE, (j - BOARD_HEIGHT) * GEM_SIZE, -1);
 
     // remove alignments
     remove_alignments();
