@@ -482,7 +482,7 @@ static bool _swap_step(void *data)
         gems[coords1[0]][coords1[1]] = selected1;
         gems[coords2[0]][coords2[1]] = selected2;
 
-        // FIXME per ora verifica statica
+        // FIXME for now static verification is enough -- no repositioning
         //evas_object_move(selected1, coords1[0] * size, coords1[1] * size);
         //evas_object_move(selected2, coords2[0] * size, coords2[1] * size);
 
@@ -492,6 +492,11 @@ static bool _swap_step(void *data)
 
         if (align1 || align2) {
             Eina_List* align = concat_duplicate(align1, align2);
+
+            // freeze timer
+            if (timed_game_timer)
+                ecore_timer_freeze(timed_game_timer);
+
             // running--; running++;
             ecore_timer_add(0.2, _remove_gems, align);
             return FALSE;
@@ -633,6 +638,9 @@ static bool _falldown(void* data)
             }
 
             else if (game_type == GAME_TYPE_TIMED) {
+                if (timed_game_timer)
+                    ecore_timer_freeze(timed_game_timer);
+
                 // recreate board
                 running++;
                 ecore_timer_add(0.5, _board_reset, NULL);
@@ -640,6 +648,9 @@ static bool _falldown(void* data)
 
             return FALSE;
         }
+
+        if (timed_game_timer)
+            ecore_timer_thaw(timed_game_timer);
 
         autoremove_alignments();
         // here we go again!!
@@ -698,6 +709,9 @@ static void autoremove_alignments(void)
 
     if (eina_list_count(align) > 0) {
         running++;
+        if (timed_game_timer)
+            ecore_timer_freeze(timed_game_timer);
+
         ecore_timer_add(0.2, _remove_gems, align);
     }
 
@@ -871,7 +885,6 @@ static void create_win(void)
 // here we go!
 static bool _start(void* data)
 {
-    // FIXME we need to manage timer freeze/thaw a bit better
     if (game_type == GAME_TYPE_TIMED) {
         if (!timed_game_timer)
             timed_game_timer = ecore_timer_add((double) 4 / current_level, _decrease_bar, NULL);
@@ -958,7 +971,7 @@ void board_new_game(GameType type)
     EINA_LOG_DBG("Starting new game, type %d", type);
     game_type = type;
     score_total = 0;
-    current_level = 0;
+    current_level = 20;
     board_next_level();
 
     mokowin_activate(win);
