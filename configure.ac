@@ -13,9 +13,11 @@ AC_PROG_LIBTOOL
 AM_GNU_GETTEXT(external)
 AM_GNU_GETTEXT_VERSION([0.12.1])
 
-PKG_CHECK_MODULES(
-	ELEMENTARY, elementary, [], [AC_MSG_FAILURE([elementary not found])]
-)
+PKG_CHECK_MODULES(ELEMENTARY, elementary, [], [AC_MSG_FAILURE([elementary not found])])
+PKG_CHECK_MODULES(ECORE, ecore, [], [AC_MSG_FAILURE([ecore not found])])
+PKG_CHECK_MODULES(EDJE, edje, [], [AC_MSG_FAILURE([edje not found])])
+PKG_CHECK_MODULES(EINA, eina, [], [AC_MSG_FAILURE([eina not found])])
+PKG_CHECK_MODULES(EVAS, evas, [], [AC_MSG_FAILURE([evas not found])])
 
 AC_ARG_ENABLE(debug,
     AC_HELP_STRING([--enable-debug], [Enable debug build (default: disabled)]),
