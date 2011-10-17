@@ -84,9 +84,9 @@
 
 
 collections {
-    images { \
-        image: "border.png" COMP; \
-    } \
+    images {
+        image: "border.png" COMP;
+    }
 
    group { name: "board/bg";
 
