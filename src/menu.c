@@ -90,7 +90,7 @@ static void create_win(void)
 
     // buttons box
     Evas_Object* btn_box = elm_box_add(win->win);
-    elm_box_homogenous_set(btn_box, TRUE);
+    elm_box_homogeneous_set(btn_box, TRUE);
     evas_object_size_hint_weight_set(btn_box, EVAS_HINT_EXPAND, 0.8);
     evas_object_size_hint_align_set(btn_box, EVAS_HINT_FILL, -1.0);
     evas_object_show(btn_box);
