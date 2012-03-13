@@ -120,7 +120,7 @@ static void _key_up(void *mokowin, Evas *e, Evas_Object *obj, void *event_info)
 Evas_Object* mokowin_menu_hover_button(MokoWin* mw, Evas_Object* table, const char* label, int x, int y, int w, int h)
 {
     Evas_Object *bt = elm_button_add(mw->win);
-    elm_button_label_set(bt, label);
+    elm_object_text_set(bt, label);
 
     evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -134,7 +134,7 @@ Evas_Object* mokowin_menu_hover_button(MokoWin* mw, Evas_Object* table, const ch
 Evas_Object* mokowin_vbox_button(MokoWin* mw, const char* label, Evas_Object* after, Evas_Object* before)
 {
     Evas_Object *bt = elm_button_add(mw->win);
-    elm_button_label_set(bt, label);
+    elm_object_text_set(bt, label);
 
     evas_object_size_hint_weight_set(bt, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(bt, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -214,7 +214,7 @@ void mokowin_menu_enable(MokoWin *mw)
             elm_box_pack_end(mw->scroller_vbox, mw->menu_hover);
 
         if (mw->layout != NULL)
-            elm_layout_content_set(mw->layout, "menu_hover", mw->menu_hover);
+            elm_object_part_content_set(mw->layout, "menu_hover", mw->menu_hover);
     }
 }
 
@@ -239,7 +239,7 @@ void mokowin_menu_set(MokoWin *mw, Evas_Object *box)
         evas_object_show(box);
 
         mw->current_menu = box;
-        elm_hover_content_set(mw->menu_hover, "top", box);
+        elm_object_part_content_set(mw->menu_hover, "top", box);
 
         mw->menu_enable = TRUE;
     }
@@ -294,7 +294,7 @@ void mokowin_create_vbox(MokoWin *mw, bool scroller)
         evas_object_show(mw->scroller);
 
         //elm_win_resize_object_add(mw->win, mw->scroller);
-        elm_scroller_content_set(mw->scroller, mw->vbox);
+        elm_object_content_set(mw->scroller, mw->vbox);
 
         // vbox per contenere il menu_hover (TODO aggiungere solo se si abilita il menu_hover)
         mw->scroller_vbox = elm_box_add(mw->win);

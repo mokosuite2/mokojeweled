@@ -52,7 +52,7 @@ static void _new_game(void *data, Evas_Object* obj, void* event)
 static Evas_Object* add_menu_button(Evas_Object* box, const char* title, Evas_Smart_Cb callback, const void* data)
 {
     Evas_Object* button = elm_button_add(win->win);
-    elm_button_label_set(button, title);
+    elm_object_text_set(button, title);
     evas_object_smart_callback_add(button, "clicked", callback, data);
 
     evas_object_size_hint_weight_set(button, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -82,10 +82,10 @@ static void create_win(void)
 
     // title
     Evas_Object* title = elm_label_add(win->win);
-    elm_label_label_set(title, PACKAGE_NAME);
+    elm_object_text_set(title, PACKAGE_NAME);
     evas_object_size_hint_weight_set(title, EVAS_HINT_EXPAND, 0.0);
     evas_object_size_hint_align_set(title, 0.5, 0.0);
-    elm_frame_content_set(fr, title);
+    elm_object_content_set(fr, title);
     evas_object_show(title);
 
     // buttons box

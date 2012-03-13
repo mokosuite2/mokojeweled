@@ -71,7 +71,7 @@ MokoPopupAlert* moko_popup_alert_new(MokoWin *parent, const char *label)
 
     // label
     p->label = elm_label_add(MOKO_INWIN(p)->inwin);
-    elm_label_label_set(p->label, label);
+    elm_object_text_set(p->label, label);
     elm_label_line_wrap_set(p->label, TRUE);
     //elm_label_wrap_width_set(p->label, 400);
 
@@ -85,14 +85,14 @@ MokoPopupAlert* moko_popup_alert_new(MokoWin *parent, const char *label)
     evas_object_size_hint_align_set(pad_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
     elm_object_style_set(pad_frame, "pad_medium");
-    elm_frame_content_set(pad_frame, p->label);
+    elm_object_content_set(pad_frame, p->label);
 
     evas_object_show(pad_frame);
     elm_box_pack_start(vbox, pad_frame);
 
     // pulsante OK
     p->ok_button = elm_button_add(MOKO_INWIN(p)->inwin);
-    elm_button_label_set(p->ok_button, _("OK"));
+    elm_object_text_set(p->ok_button, _("OK"));
     evas_object_smart_callback_add(p->ok_button, "clicked", _popup_alert_ok, p);
 
     evas_object_size_hint_weight_set(p->ok_button, EVAS_HINT_EXPAND, 0.0);
@@ -101,7 +101,7 @@ MokoPopupAlert* moko_popup_alert_new(MokoWin *parent, const char *label)
 
     elm_box_pack_end(vbox, p->ok_button);
 
-    elm_win_inwin_content_set(MOKO_INWIN(p)->inwin, vbox);
+    elm_object_content_set(MOKO_INWIN(p)->inwin, vbox);
 
     // supporto inners di mokowin
     mokowin_inner_add(p->parent, MOKO_INWIN(p));
@@ -115,7 +115,7 @@ MokoPopupAlert* moko_popup_alert_new(MokoWin *parent, const char *label)
 void moko_popup_status_activate(MokoPopupStatus *popup, const char *status)
 {
     if (status != NULL)
-        elm_label_label_set(popup->status, status);
+        elm_object_text_set(popup->status, status);
 
     mokoinwin_activate(MOKO_INWIN(popup));
 }
@@ -139,7 +139,7 @@ MokoPopupStatus* moko_popup_status_new(MokoWin *parent, const char *status)
     evas_object_size_hint_align_set(p->status, 0.5, -1.0);
     evas_object_show(p->status);
 
-    elm_win_inwin_content_set(MOKO_INWIN(p)->inwin, p->status);
+    elm_object_content_set(MOKO_INWIN(p)->inwin, p->status);
 
     // FIXME inners con azione
     //mokowin_inner_add(p->parent, MOKO_INWIN(p));
@@ -195,7 +195,7 @@ Evas_Object* moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int in
     if (popup->style == MOKO_POPUP_CHECKS_OK || popup->style == MOKO_POPUP_CHECKS) {
 
         b = elm_radio_add(MOKO_INWIN(popup)->inwin);
-        elm_radio_label_set(b, label);
+        elm_object_text_set(b, label);
         elm_radio_state_value_set(b, index);
         if (popup->last)
             elm_radio_group_add(b, popup->last);
@@ -211,7 +211,7 @@ Evas_Object* moko_popup_menu_add(MokoPopupMenu* popup, const char *label, int in
     } else {
 
         b = elm_button_add(MOKO_INWIN(popup)->inwin);
-        elm_button_label_set(b, label);
+        elm_object_text_set(b, label);
 
         evas_object_smart_callback_add(b, "clicked", _menu_button_click, popup);
     }
@@ -251,7 +251,7 @@ MokoPopupMenu* moko_popup_menu_new(MokoWin *parent, const char *message, MokoPop
     // label
     if (message != NULL) {
         p->label = elm_label_add(MOKO_INWIN(p)->inwin);
-        elm_label_label_set(p->label, message);
+        elm_object_text_set(p->label, message);
         elm_label_line_wrap_set(p->label, TRUE);
 
         evas_object_size_hint_weight_set(p->label, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -262,7 +262,7 @@ MokoPopupMenu* moko_popup_menu_new(MokoWin *parent, const char *message, MokoPop
         evas_object_size_hint_weight_set(frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
         evas_object_size_hint_align_set(frame, 0.5, EVAS_HINT_FILL);
         elm_object_style_set(frame, "pad_medium");
-        elm_frame_content_set(frame, p->label);
+        elm_object_content_set(frame, p->label);
         evas_object_show(frame);
 
         elm_box_pack_start(gbox, frame);
@@ -284,13 +284,13 @@ MokoPopupMenu* moko_popup_menu_new(MokoWin *parent, const char *message, MokoPop
     evas_object_size_hint_align_set(p->vbox, EVAS_HINT_FILL, EVAS_HINT_FILL);
     evas_object_show(p->vbox);
 
-    elm_scroller_content_set(scroll, p->vbox);
+    elm_object_content_set(scroll, p->vbox);
     elm_box_pack_end(gbox, scroll);
 
     if (style == MOKO_POPUP_CHECKS_OK) {
         // aggiungi pulsante ok alla fine
         Evas_Object* btn_ok = elm_button_add(MOKO_INWIN(p)->inwin);
-        elm_button_label_set(btn_ok, _("OK"));
+        elm_object_text_set(btn_ok, _("OK"));
         evas_object_size_hint_weight_set(btn_ok, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
         evas_object_size_hint_align_set(btn_ok, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
@@ -306,7 +306,7 @@ MokoPopupMenu* moko_popup_menu_new(MokoWin *parent, const char *message, MokoPop
     // supporto inners di mokowin
     mokowin_inner_add(p->parent, MOKO_INWIN(p));
 
-    elm_win_inwin_content_set(MOKO_INWIN(p)->inwin, gbox);
+    elm_object_content_set(MOKO_INWIN(p)->inwin, gbox);
 
     return p;
 }
@@ -390,14 +390,14 @@ MokoPopupSlider* moko_popup_slider_new(MokoWin *parent, const char *message, int
     evas_object_size_hint_weight_set(frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_object_style_set(frame, "pad_medium");
-    elm_frame_content_set(frame, frame_vbox);
+    elm_object_content_set(frame, frame_vbox);
     evas_object_show(frame);
 
     elm_box_pack_start(p->vbox, frame);
 
     // label
     p->label = elm_label_add(MOKO_INWIN(p)->inwin);
-    elm_label_label_set(p->label, message);
+    elm_object_text_set(p->label, message);
     elm_label_line_wrap_set(p->label, TRUE);
 
     evas_object_size_hint_weight_set(p->label, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -427,7 +427,7 @@ MokoPopupSlider* moko_popup_slider_new(MokoWin *parent, const char *message, int
 
     // pulsante OK
     Evas_Object *b = elm_button_add(MOKO_INWIN(p)->inwin);
-    elm_button_label_set(b, _("OK"));
+    elm_object_text_set(b, _("OK"));
     evas_object_size_hint_weight_set(b, EVAS_HINT_EXPAND, 0.0);
     evas_object_size_hint_align_set(b, EVAS_HINT_FILL, 0.0);
 
@@ -438,7 +438,7 @@ MokoPopupSlider* moko_popup_slider_new(MokoWin *parent, const char *message, int
 
     // pulsante Annulla
     b = elm_button_add(MOKO_INWIN(p)->inwin);
-    elm_button_label_set(b, _("Cancel"));
+    elm_object_text_set(b, _("Cancel"));
     evas_object_size_hint_weight_set(b, EVAS_HINT_EXPAND, 0.0);
     evas_object_size_hint_align_set(b, EVAS_HINT_FILL, 0.0);
 
@@ -453,7 +453,7 @@ MokoPopupSlider* moko_popup_slider_new(MokoWin *parent, const char *message, int
     // supporto inners di mokowin
     mokowin_inner_add(p->parent, MOKO_INWIN(p));
 
-    elm_win_inwin_content_set(MOKO_INWIN(p)->inwin, p->vbox);
+    elm_object_content_set(MOKO_INWIN(p)->inwin, p->vbox);
 
     return p;
 }
