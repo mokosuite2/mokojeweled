@@ -10,7 +10,7 @@ Source: %{name}-%{version}.tar.gz
 Packager: %{?_packager:%{_packager}}%{!?_packager:Rui Miguel Seabra <rms@1407.org>}
 Vendor: Daniele Ricci <daniele.athome@gmail.com>
 Distribution: %{?_distribution:%{_distribution}}%{!?_distribution:%{_vendor}}
-URL: http://gitorious.org/mokosuite2/mokojeweled
+URL: https://gitorious.org/mokosuite2/mokojeweled
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Requires: elementary
 BuildRequires: elementary-devel

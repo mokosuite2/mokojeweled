@@ -1,5 +1,5 @@
 DESCRIPTION = "A bejeweled clone in Elementary"
-HOMEPAGE = "http://gitorious.org/mokosuite2/mokojeweled"
+HOMEPAGE = "https://gitorious.org/mokosuite2/mokojeweled"
 AUTHOR = "Daniele Ricci"
 LICENSE = "GPLv3"
 DEPENDS = "elementary"

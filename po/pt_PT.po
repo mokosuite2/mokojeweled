@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mokojeweled\n"
-"Report-Msgid-Bugs-To: http://gitorious.org/mokosuite2/\n"
+"Report-Msgid-Bugs-To: https://gitorious.org/mokosuite2/\n"
 "POT-Creation-Date: 2010-12-15 19:35+0800\n"
 "PO-Revision-Date: 2010-10-06 15:55+0100\n"
 "Last-Translator: Rui Miguel Silva Seabra <rms@1407.org>\n"
